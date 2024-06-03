@@ -79,12 +79,22 @@ class ScrollList extends RefreshScrollView {
 
     /// 子元素在主轴上的长度。[mainAxisExtent] 优先 [childAspectRatio]
     double? mainAxisExtent,
+
+    /// itemCount==0 || children.isisEmpty 时 占位
     Widget? placeholder,
+
+    /// [placeholder] use [SliverFillRemaining]
+    bool placeholderFill = true,
+
+    /// header
     this.header,
+
+    /// footer
     this.footer,
   }) : sliver = [
           SliverListGrid.builder(
               placeholder: placeholder,
+              placeholderFill: placeholderFill,
               mainAxisExtent: mainAxisExtent,
               maxCrossAxisExtent: maxCrossAxisExtent,
               childAspectRatio: childAspectRatio,
@@ -154,14 +164,22 @@ class ScrollList extends RefreshScrollView {
     /// [gridStyle] == [GridStyle.none] 生效
     double? mainAxisExtent,
 
-    /// 占位
+    /// itemCount==0 || children.isisEmpty 时 占位
     Widget? placeholder,
+
+    /// [placeholder] use [SliverFillRemaining]
+    bool placeholderFill = true,
+
+    /// header
     this.header,
+
+    /// footer
     this.footer,
   }) : sliver = [
           SliverListGrid.count(
               semanticIndexCallback: semanticIndexCallback,
               placeholder: placeholder,
+              placeholderFill: placeholderFill,
               mainAxisExtent: mainAxisExtent,
               maxCrossAxisExtent: maxCrossAxisExtent,
               childAspectRatio: childAspectRatio,
