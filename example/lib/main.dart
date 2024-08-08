@@ -1,4 +1,5 @@
 import 'package:device_preview_minus/device_preview_minus.dart';
+import 'package:example/src/nested_list_page.dart';
 import 'package:example/src/scroll_list_page.dart';
 import 'package:example/src/scroll_view_page.dart';
 import 'package:fl_scroll_view/fl_scroll_view.dart';
@@ -72,6 +73,7 @@ class _HomePageState extends State<HomePage> {
               onTap: () => push(const RefreshScrollViewPage())),
           ElevatedText('ExtendedSliverPersistentHeader',
               onTap: () => push(const FlSliverPersistentHeaderPage())),
+          ElevatedText('NestedList', onTap: () => push(const NestedListPage())),
           ElevatedText('ScrollList', onTap: () => push(const ScrollListPage())),
           ElevatedText('ScrollList.builder',
               onTap: () => push(const ScrollListBuilderPage())),

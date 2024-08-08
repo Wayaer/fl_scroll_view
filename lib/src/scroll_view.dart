@@ -11,7 +11,7 @@ class RefreshScrollView extends StatelessWidget {
       this.padding,
       this.slivers = const [],
       this.noScrollBehavior = false,
-      this.shrinkWrap = false,
+      this.shrinkWrap,
       this.reverse = false,
       this.scrollDirection = Axis.vertical,
       this.anchor = 0.0,
@@ -28,31 +28,68 @@ class RefreshScrollView extends StatelessWidget {
       this.restorationId});
 
   /// CustomScrollView
+  /// keyboardDismissBehavior
   final ScrollViewKeyboardDismissBehavior keyboardDismissBehavior;
+
+  /// restorationId
   final String? restorationId;
+
+  /// clipBehavior
   final Clip clipBehavior;
+
+  /// dragStartBehavior
   final DragStartBehavior dragStartBehavior;
+
+  /// semanticChildCount
   final int? semanticChildCount;
+
+  /// cacheExtent
   final double? cacheExtent;
+
+  /// anchor
   final double anchor;
+
+  /// center
   final Key? center;
+
+  /// scrollBehavior
   final ScrollBehavior? scrollBehavior;
+
+  /// physics
   final ScrollPhysics? physics;
+
+  /// primary
   final bool? primary;
+
+  /// controller
   final ScrollController? controller;
-  final bool shrinkWrap;
+
+  /// shrinkWrap
+  final bool? shrinkWrap;
+
+  /// reverse
   final bool reverse;
+
+  /// scrollDirection
   final Axis scrollDirection;
+
+  /// slivers
   final List<Widget> slivers;
 
   /// Extra parameters
+  /// noScrollBehavior
   final bool noScrollBehavior;
+
+  /// padding
   final EdgeInsetsGeometry? padding;
+
+  /// refreshConfig
   final RefreshConfig? refreshConfig;
 
-  bool _shrinkWrap(bool shrinkWrap, ScrollPhysics? physics) {
-    if (physics == const NeverScrollableScrollPhysics()) return true;
-    return shrinkWrap;
+  /// getShrinkWrap
+  bool _shrinkWrap(bool? shrinkWrap, ScrollPhysics? physics) {
+    if (shrinkWrap != null) return shrinkWrap;
+    return physics == const NeverScrollableScrollPhysics();
   }
 
   @override
@@ -71,26 +108,26 @@ class RefreshScrollView extends StatelessWidget {
     return widget;
   }
 
-  List<Widget> buildSlivers() => slivers;
+  List<Widget> get buildSlivers => slivers;
 
   CustomScrollView buildCustomScrollView(ScrollPhysics? physics) =>
       CustomScrollView(
-          physics: physics,
-          controller: controller,
-          primary: primary,
-          shrinkWrap: _shrinkWrap(shrinkWrap, physics),
-          cacheExtent: cacheExtent,
-          dragStartBehavior: dragStartBehavior,
           scrollDirection: scrollDirection,
           reverse: reverse,
-          slivers: buildSlivers(),
-          anchor: anchor,
-          center: center,
+          controller: controller,
+          primary: primary,
           scrollBehavior: scrollBehavior,
+          shrinkWrap: _shrinkWrap(shrinkWrap, physics),
+          center: center,
+          anchor: anchor,
+          cacheExtent: cacheExtent,
+          slivers: buildSlivers,
+          semanticChildCount: semanticChildCount,
+          dragStartBehavior: dragStartBehavior,
           keyboardDismissBehavior: keyboardDismissBehavior,
           restorationId: restorationId,
           clipBehavior: clipBehavior,
-          semanticChildCount: semanticChildCount);
+          physics: physics);
 }
 
 class NoScrollBehavior extends ScrollBehavior {

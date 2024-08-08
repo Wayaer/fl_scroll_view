@@ -32,7 +32,7 @@ class SliverListGrid extends StatelessWidget {
     this.addRepaintBoundaries = true,
     this.addSemanticIndexes = true,
     this.placeholder,
-    this.placeholderFill = true,
+    this.placeholderFill,
   }) : children = null;
 
   const SliverListGrid.count({
@@ -52,7 +52,7 @@ class SliverListGrid extends StatelessWidget {
     this.addRepaintBoundaries = true,
     this.addSemanticIndexes = true,
     this.placeholder,
-    this.placeholderFill = true,
+    this.placeholderFill,
   })  : assert(children != null),
         assert(gridStyle != GridStyle.aligned),
         itemBuilder = null,
@@ -105,15 +105,15 @@ class SliverListGrid extends StatelessWidget {
   /// itemCount==0 || children.isisEmpty 时 占位
   final Widget? placeholder;
 
-  /// [placeholder] use [SliverFillRemaining]
-  final bool placeholderFill;
+  /// [placeholderFill]=true,[placeholder] use [SliverFillRemaining]
+  final bool? placeholderFill;
 
   final GridStyle gridStyle;
 
   @override
   Widget build(BuildContext context) {
     if ((children ?? []).isEmpty && itemCount == 0) {
-      return placeholderFill
+      return true == placeholderFill
           ? SliverFillRemaining(hasScrollBody: false, child: placeholder)
           : SliverToBoxAdapter(child: placeholder);
     }

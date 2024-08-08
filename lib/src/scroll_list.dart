@@ -12,7 +12,7 @@ class ScrollList extends RefreshScrollView {
   const ScrollList({
     super.key,
     super.reverse = false,
-    super.shrinkWrap = false,
+    super.shrinkWrap,
     super.noScrollBehavior = false,
     super.primary,
     super.scrollDirection = Axis.vertical,
@@ -32,7 +32,7 @@ class ScrollList extends RefreshScrollView {
   ScrollList.builder({
     super.key,
     super.reverse = false,
-    super.shrinkWrap = false,
+    super.shrinkWrap,
     super.noScrollBehavior = false,
     super.primary,
     super.scrollDirection = Axis.vertical,
@@ -83,8 +83,8 @@ class ScrollList extends RefreshScrollView {
     /// itemCount==0 || children.isisEmpty 时 占位
     Widget? placeholder,
 
-    /// [placeholder] use [SliverFillRemaining]
-    bool placeholderFill = true,
+    /// [placeholderFill]=true,[placeholder] use [SliverFillRemaining]
+    bool? placeholderFill,
 
     /// header
     this.header,
@@ -94,7 +94,7 @@ class ScrollList extends RefreshScrollView {
   }) : sliver = [
           SliverListGrid.builder(
               placeholder: placeholder,
-              placeholderFill: placeholderFill,
+              placeholderFill: _placeholderFill(placeholderFill, physics),
               mainAxisExtent: mainAxisExtent,
               maxCrossAxisExtent: maxCrossAxisExtent,
               childAspectRatio: childAspectRatio,
@@ -117,7 +117,7 @@ class ScrollList extends RefreshScrollView {
   ScrollList.count({
     super.key,
     super.reverse = false,
-    super.shrinkWrap = false,
+    super.shrinkWrap,
     super.noScrollBehavior = false,
     super.primary,
     super.scrollDirection = Axis.vertical,
@@ -167,8 +167,8 @@ class ScrollList extends RefreshScrollView {
     /// itemCount==0 || children.isisEmpty 时 占位
     Widget? placeholder,
 
-    /// [placeholder] use [SliverFillRemaining]
-    bool placeholderFill = true,
+    /// [placeholderFill]=true,[placeholder] use [SliverFillRemaining]
+    bool? placeholderFill,
 
     /// header
     this.header,
@@ -179,7 +179,7 @@ class ScrollList extends RefreshScrollView {
           SliverListGrid.count(
               semanticIndexCallback: semanticIndexCallback,
               placeholder: placeholder,
-              placeholderFill: placeholderFill,
+              placeholderFill: _placeholderFill(placeholderFill, physics),
               mainAxisExtent: mainAxisExtent,
               maxCrossAxisExtent: maxCrossAxisExtent,
               childAspectRatio: childAspectRatio,
@@ -195,6 +195,11 @@ class ScrollList extends RefreshScrollView {
               children: children)
         ];
 
+  static bool _placeholderFill(bool? placeholderFill, ScrollPhysics? physics) {
+    if (placeholderFill != null) return placeholderFill;
+    return physics != const NeverScrollableScrollPhysics();
+  }
+
   /// 添加多个 [Widget]
   final List<Widget> sliver;
 
@@ -205,7 +210,7 @@ class ScrollList extends RefreshScrollView {
   final Widget? footer;
 
   @override
-  List<Widget> buildSlivers() {
+  List<Widget> get buildSlivers {
     final List<Widget> slivers = [];
     if (sliver.isNotEmpty) slivers.addAll(sliver);
     if (header != null) slivers.insert(0, header!);
