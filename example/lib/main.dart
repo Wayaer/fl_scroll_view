@@ -49,7 +49,9 @@ class ElevatedText extends StatelessWidget {
   Widget build(BuildContext context) {
     final current = ElevatedButton(onPressed: onTap, child: Text(text));
     if (defaultTargetPlatform == TargetPlatform.android &&
-        defaultTargetPlatform == TargetPlatform.iOS) return current;
+        defaultTargetPlatform == TargetPlatform.iOS) {
+      return current;
+    }
     return Padding(padding: const EdgeInsets.all(10), child: current);
   }
 }

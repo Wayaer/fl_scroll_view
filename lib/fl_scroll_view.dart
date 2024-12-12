@@ -1,5 +1,3 @@
-library fl_scroll_view;
-
 import 'package:fl_scroll_view/fl_scroll_view.dart';
 
 export 'package:easy_refresh/easy_refresh.dart';
