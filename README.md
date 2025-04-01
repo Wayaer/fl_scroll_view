@@ -15,13 +15,13 @@ Widget build(BuildContext context) {
       mainAxisSpacing: 10,
       crossAxisSpacing: 10,
       gridStyle: GridStyle.masonry,
-      refreshConfig: RefreshConfig(
-          onRefresh: () async {
+      refreshConfig: RefreshConfig<void>(
+          onRefresh: (EasyRefreshController controller) async {
             debugPrint('onRefresh');
             await Future.delayed(const Duration(seconds: 2), () {
               RefreshControllers().call(EasyRefreshType.refreshSuccess);
             });
-          }, onLoading: () async {
+          }, onLoading: (EasyRefreshController controller) async {
         debugPrint('onLoading');
         await Future.delayed(const Duration(seconds: 2), () {
           RefreshControllers().call(EasyRefreshType.loadingSuccess);
@@ -46,12 +46,12 @@ Widget build(BuildContext context) {
       gridStyle: GridStyle.masonry,
       separatorBuilder: (_, int index) => Divider(),
       refreshConfig: RefreshConfig(
-          onRefresh: () async {
+          onRefresh: (EasyRefreshController controller) async {
             debugPrint('onRefresh');
             await Future.delayed(const Duration(seconds: 2), () {
               RefreshControllers().call(EasyRefreshType.refreshSuccess);
             });
-          }, onLoading: () async {
+          }, onLoading: (EasyRefreshController controller) async {
         debugPrint('onLoading');
         await Future.delayed(const Duration(seconds: 2), () {
           RefreshControllers().call(EasyRefreshType.loadingSuccess);
@@ -69,12 +69,12 @@ Widget build(BuildContext context) {
   return RefreshScrollView(
       controller: scrollController,
       refreshConfig: RefreshConfig(
-          onRefresh: () async {
+          onRefresh: (EasyRefreshController controller) async {
             debugPrint('onRefresh');
             await Future.delayed(const Duration(seconds: 2), () {
               RefreshControllers().call(EasyRefreshType.refreshSuccess);
             });
-          }, onLoading: () async {
+          }, onLoading: (EasyRefreshController controller) async {
         debugPrint('onLoading');
         await Future.delayed(const Duration(seconds: 2), () {
           RefreshControllers().call(EasyRefreshType.loadingSuccess);

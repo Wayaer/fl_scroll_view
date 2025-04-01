@@ -62,14 +62,14 @@ class RefreshScrollViewPage extends StatelessWidget {
         body: RefreshScrollView(
             controller: scrollController,
             padding: const EdgeInsets.all(10),
-            refreshConfig: RefreshConfig(onRefresh: () async {
+            refreshConfig: RefreshConfig(onRefresh: (_) async {
               debugPrint('onRefresh');
-              RefreshControllers().call(EasyRefreshType.refreshSuccess);
-            }, onLoading: () async {
+              await Future.delayed(const Duration(seconds: 2));
+              return EasyRefreshType.refreshSuccess;
+            }, onLoad: (_) async {
               debugPrint('onLoading');
-              await Future.delayed(const Duration(seconds: 2), () {
-                RefreshControllers().call(EasyRefreshType.loadingSuccess);
-              });
+              await Future.delayed(const Duration(seconds: 2));
+              return EasyRefreshType.loadingSuccess;
             }),
             slivers: [
               SliverListGrid.builder(

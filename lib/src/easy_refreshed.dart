@@ -12,45 +12,53 @@ class RefreshControllers {
 
   final Map<int, EasyRefreshController> _controllers = {};
 
-  void _set(EasyRefreshController controller) {
+  void _add(EasyRefreshController controller) {
     _controllers[controller.hashCode] = controller;
   }
 
   EasyRefreshController? get(int hashCode) => _controllers[hashCode];
 
-  void remove(int hashCode) {
+  void _remove(int hashCode) {
     _controllers.remove(hashCode);
   }
 
   /// 最近一次调用刷新组件的 Controller
-  EasyRefreshController? current;
+  EasyRefreshController? _current;
+
+  EasyRefreshController? get current => _current;
 
   /// 调用当前刷新
-  void call(EasyRefreshType data, {EasyRefreshController? controller}) {
-    switch (data) {
+  void call(EasyRefreshType type, {EasyRefreshController? controller}) {
+    (controller ?? current)?.call(type);
+  }
+}
+
+extension ExtensionEasyRefreshController on EasyRefreshController {
+  void call(EasyRefreshType type) {
+    switch (type) {
       case EasyRefreshType.refresh:
-        (controller ?? current)?.callRefresh();
+        callRefresh();
         break;
       case EasyRefreshType.refreshSuccess:
-        (controller ?? current)?.finishRefresh(IndicatorResult.success);
+        finishRefresh(IndicatorResult.success);
         break;
       case EasyRefreshType.refreshFailed:
-        (controller ?? current)?.finishRefresh(IndicatorResult.fail);
+        finishRefresh(IndicatorResult.fail);
         break;
       case EasyRefreshType.refreshNoMore:
-        (controller ?? current)?.finishRefresh(IndicatorResult.noMore);
+        finishRefresh(IndicatorResult.noMore);
         break;
       case EasyRefreshType.loading:
-        (controller ?? current)?.callLoad();
+        callLoad();
         break;
       case EasyRefreshType.loadingSuccess:
-        (controller ?? current)?.finishLoad(IndicatorResult.success);
+        finishLoad(IndicatorResult.success);
         break;
       case EasyRefreshType.loadFailed:
-        (controller ?? current)?.finishLoad(IndicatorResult.fail);
+        finishLoad(IndicatorResult.fail);
         break;
       case EasyRefreshType.loadNoMore:
-        (controller ?? current)?.finishLoad(IndicatorResult.noMore);
+        finishLoad(IndicatorResult.noMore);
         break;
     }
   }
@@ -109,21 +117,21 @@ class EasyRefreshed extends StatefulWidget {
 
 class _EasyRefreshedState extends State<EasyRefreshed> {
   late EasyRefreshController controller;
-  late RefreshConfig config;
 
   @override
   void initState() {
+    initController();
     super.initState();
-    initConfig();
   }
 
-  void initConfig() {
-    config = widget.config;
+  RefreshConfig get config => widget.config;
+
+  void initController() {
     controller = config.controller ??
         EasyRefreshController(
             controlFinishRefresh: config.onRefresh != null,
-            controlFinishLoad: config.onLoading != null);
-    RefreshControllers()._set(controller);
+            controlFinishLoad: config.onLoad != null);
+    RefreshControllers()._add(controller);
   }
 
   @override
@@ -133,7 +141,7 @@ class _EasyRefreshedState extends State<EasyRefreshed> {
       if (config.controller != null && controller != config.controller) {
         controller.dispose();
       }
-      initConfig();
+      initController();
       if (mounted) setState(() {});
     }
   }
@@ -144,17 +152,19 @@ class _EasyRefreshedState extends State<EasyRefreshed> {
         controller: controller,
         header: config.header ?? FlScrollView.globalRefreshHeader,
         footer: config.footer ?? FlScrollView.globalRefreshFooter,
-        onLoad: config.onLoading == null
-            ? null
-            : () {
-                RefreshControllers().current = controller;
-                config.onLoading!.call();
-              },
         onRefresh: config.onRefresh == null
             ? null
-            : () {
-                RefreshControllers().current = controller;
-                config.onRefresh!.call();
+            : () async {
+                RefreshControllers()._current = controller;
+                final result = await config.onRefresh!.call(controller);
+                if (result is EasyRefreshType) controller(result);
+              },
+        onLoad: config.onLoad == null
+            ? null
+            : () async {
+                RefreshControllers()._current = controller;
+                final result = await config.onLoad!.call(controller);
+                if (result is EasyRefreshType) controller(result);
               },
         scrollController: config.scrollController,
         spring: config.spring,
@@ -180,17 +190,22 @@ class _EasyRefreshedState extends State<EasyRefreshed> {
   void dispose() {
     controller.dispose();
     if (RefreshControllers().current == controller) {
-      RefreshControllers().current = null;
+      RefreshControllers()._current = null;
+      RefreshControllers()._remove(controller.hashCode);
     }
     super.dispose();
   }
 }
 
+/// return [Null] or [EasyRefreshType]
+typedef EasyRefreshCallback = FutureOr<dynamic> Function(
+    EasyRefreshController controller);
+
 class RefreshConfig {
   const RefreshConfig(
       {this.controller,
       this.onRefresh,
-      this.onLoading,
+      this.onLoad,
       this.header,
       this.footer,
       this.spring,
@@ -213,14 +228,13 @@ class RefreshConfig {
 
   /// 可不传controller，
   /// 若想关闭刷新组件可以通过发送消息
-  /// sendRefreshType(RefreshCompletedType.refresh);
   final EasyRefreshController? controller;
 
   /// 下拉刷新回调(null为不开启刷新)
-  final FutureOr Function()? onRefresh;
+  final EasyRefreshCallback? onRefresh;
 
   /// 上拉加载回调(null为不开启加载)
-  final FutureOr Function()? onLoading;
+  final EasyRefreshCallback? onLoad;
 
   /// CustomHeader
   final Header? header;
@@ -290,8 +304,8 @@ class RefreshConfig {
 
   RefreshConfig copyWith({
     EasyRefreshController? controller,
-    FutureOr Function()? onRefresh,
-    FutureOr Function()? onLoading,
+    EasyRefreshCallback? onRefresh,
+    EasyRefreshCallback? onLoad,
     Header? header,
     Footer? footer,
     SpringDescription? spring,
@@ -315,7 +329,7 @@ class RefreshConfig {
       RefreshConfig(
           controller: controller ?? this.controller,
           onRefresh: onRefresh ?? this.onRefresh,
-          onLoading: onLoading ?? this.onLoading,
+          onLoad: onLoad ?? this.onLoad,
           header: header ?? this.header,
           footer: footer ?? this.footer,
           spring: spring ?? this.spring,
@@ -343,7 +357,7 @@ class RefreshConfig {
   RefreshConfig marge([RefreshConfig? config]) => copyWith(
       controller: config?.controller,
       onRefresh: config?.onRefresh,
-      onLoading: config?.onLoading,
+      onLoad: config?.onLoad,
       header: config?.header,
       footer: config?.footer,
       spring: config?.spring,

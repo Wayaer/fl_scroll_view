@@ -257,15 +257,15 @@ class _Footer extends StatelessWidget {
 
 class _RefreshConfig extends RefreshConfig {
   _RefreshConfig()
-      : super(onRefresh: () async {
+      : super(onRefresh: (EasyRefreshController controller) {
           debugPrint('onRefresh');
-          await Future.delayed(const Duration(seconds: 2), () {
-            RefreshControllers().call(EasyRefreshType.refreshSuccess);
+          Future.delayed(const Duration(seconds: 2), () {
+            controller(EasyRefreshType.refreshSuccess);
           });
-        }, onLoading: () async {
+        }, onLoad: (EasyRefreshController controller) {
           debugPrint('onLoading');
-          await Future.delayed(const Duration(seconds: 2), () {
-            RefreshControllers().call(EasyRefreshType.loadingSuccess);
+          Future.delayed(const Duration(seconds: 2), () {
+            controller(EasyRefreshType.loadingSuccess);
           });
         });
 }
