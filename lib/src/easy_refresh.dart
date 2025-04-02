@@ -212,7 +212,7 @@ class _FlEasyRefreshState extends State<FlEasyRefresh> {
         child: widget.child,
       );
     }
-    return SizedBox();
+    return const SizedBox();
   }
 
   @override
