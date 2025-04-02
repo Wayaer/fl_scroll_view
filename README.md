@@ -2,11 +2,11 @@
 
 ## Run [Web example](https://wayaer.github.io/fl_scroll_view/example/app/web/index.html#/)
 
-### ScrollList.count
+### FlScrollListGrid.count
 
 ```dart
 Widget build(BuildContext context) {
-  return ScrollList.count(
+  return FlScrollListGrid.count(
       header: const Header(),
       footer: const Footer(),
       padding: const EdgeInsets.all(10),
@@ -15,16 +15,16 @@ Widget build(BuildContext context) {
       mainAxisSpacing: 10,
       crossAxisSpacing: 10,
       gridStyle: GridStyle.masonry,
-      refreshConfig: RefreshConfig<void>(
+      refreshConfig: FlEasyRefreshConfig<void>(
           onRefresh: (EasyRefreshController controller) async {
             debugPrint('onRefresh');
             await Future.delayed(const Duration(seconds: 2), () {
-              RefreshControllers().call(EasyRefreshType.refreshSuccess);
+              FlEasyRefreshControllers().call(FlEasyRefreshResult.refreshSuccess);
             });
-          }, onLoading: (EasyRefreshController controller) async {
-        debugPrint('onLoading');
+          }, onLoad: (EasyRefreshController controller) async {
+        debugPrint('onLoad');
         await Future.delayed(const Duration(seconds: 2), () {
-          RefreshControllers().call(EasyRefreshType.loadingSuccess);
+          FlEasyRefreshControllers().call(FlEasyRefreshResult.loadingSuccess);
         });
       }),
       children: []);
@@ -32,11 +32,11 @@ Widget build(BuildContext context) {
 
 ```
 
-### ScrollList.builder
+### FlScrollListGrid.builder
 
 ```dart
 Widget build(BuildContext context) {
-  return ScrollList.builder(
+  return FlScrollListGrid.builder(
       header: const Header(),
       footer: const Footer(),
       maxCrossAxisExtent: 100,
@@ -45,16 +45,16 @@ Widget build(BuildContext context) {
       crossAxisSpacing: 10,
       gridStyle: GridStyle.masonry,
       separatorBuilder: (_, int index) => Divider(),
-      refreshConfig: RefreshConfig(
+      refreshConfig: FlEasyRefreshConfig(
           onRefresh: (EasyRefreshController controller) async {
             debugPrint('onRefresh');
             await Future.delayed(const Duration(seconds: 2), () {
-              RefreshControllers().call(EasyRefreshType.refreshSuccess);
+              FlEasyRefreshControllers().call(FlEasyRefreshResult.refreshSuccess);
             });
-          }, onLoading: (EasyRefreshController controller) async {
-        debugPrint('onLoading');
+          }, onLoad: (EasyRefreshController controller) async {
+        debugPrint('onLoad');
         await Future.delayed(const Duration(seconds: 2), () {
-          RefreshControllers().call(EasyRefreshType.loadingSuccess);
+          FlEasyRefreshControllers().call(FlEasyRefreshResult.loadingSuccess);
         });
       }),
       children: []);
@@ -66,18 +66,18 @@ Widget build(BuildContext context) {
 
 ```dart
 Widget build(BuildContext context) {
-  return RefreshScrollView(
+  return FlRefreshScrollView(
       controller: scrollController,
-      refreshConfig: RefreshConfig(
+      refreshConfig: FlEasyRefreshConfig(
           onRefresh: (EasyRefreshController controller) async {
             debugPrint('onRefresh');
             await Future.delayed(const Duration(seconds: 2), () {
-              RefreshControllers().call(EasyRefreshType.refreshSuccess);
+              FlEasyRefreshControllers().call(FlEasyRefreshResult.refreshSuccess);
             });
-          }, onLoading: (EasyRefreshController controller) async {
-        debugPrint('onLoading');
+          }, onLoad: (EasyRefreshController controller) async {
+        debugPrint('onLoad');
         await Future.delayed(const Duration(seconds: 2), () {
-          RefreshControllers().call(EasyRefreshType.loadingSuccess);
+          FlEasyRefreshControllers().call(FlEasyRefreshResult.loadingSuccess);
         });
       }),
       slivers: [
@@ -89,7 +89,7 @@ Widget build(BuildContext context) {
                 alignment: Alignment.center,
                 child: const Text('FlSliverPersistentHeader',
                     style: TextStyle(color: Colors.black)))),
-        SliverListGrid.builder(
+        FlSliverListGrid.builder(
             itemCount: colorList.length,
             maxCrossAxisExtent: 100,
             crossAxisCount: 3,
@@ -102,7 +102,7 @@ Widget build(BuildContext context) {
             itemBuilder: (_, int index) {
               return ColorEntry(index, colorList[index]);
             }),
-        SliverListGrid.count(
+        FlSliverListGrid.count(
             maxCrossAxisExtent: 100,
             crossAxisCount: 3,
             mainAxisSpacing: 10,

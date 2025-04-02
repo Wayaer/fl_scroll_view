@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 
 /// 可刷新的滚动组件
 /// 嵌套 sliver 家族组件
-class RefreshScrollView extends StatelessWidget {
-  const RefreshScrollView(
+class FlRefreshScrollView extends StatelessWidget {
+  const FlRefreshScrollView(
       {super.key,
       this.refreshConfig,
       this.padding,
@@ -24,6 +24,7 @@ class RefreshScrollView extends StatelessWidget {
       this.dragStartBehavior = DragStartBehavior.start,
       this.keyboardDismissBehavior = ScrollViewKeyboardDismissBehavior.manual,
       this.clipBehavior = Clip.hardEdge,
+      this.hitTestBehavior = HitTestBehavior.opaque,
       this.scrollBehavior,
       this.restorationId});
 
@@ -73,6 +74,9 @@ class RefreshScrollView extends StatelessWidget {
   /// scrollDirection
   final Axis scrollDirection;
 
+  /// Defaults to [HitTestBehavior.opaque].
+  final HitTestBehavior hitTestBehavior;
+
   /// slivers
   final List<Widget> slivers;
 
@@ -83,8 +87,8 @@ class RefreshScrollView extends StatelessWidget {
   /// padding
   final EdgeInsetsGeometry? padding;
 
-  /// refreshConfig
-  final RefreshConfig? refreshConfig;
+  /// [FlEasyRefreshConfig]
+  final FlEasyRefreshConfig? refreshConfig;
 
   /// getShrinkWrap
   bool _shrinkWrap(bool? shrinkWrap, ScrollPhysics? physics) {
@@ -99,7 +103,7 @@ class RefreshScrollView extends StatelessWidget {
       widget = ScrollConfiguration(behavior: NoScrollBehavior(), child: widget);
     }
     if (refreshConfig != null) {
-      widget = EasyRefreshed(
+      widget = FlEasyRefresh(
           config: refreshConfig!.copyWith(scrollController: controller),
           builder: (_, ScrollPhysics physics) =>
               buildCustomScrollView(physics));
@@ -112,22 +116,24 @@ class RefreshScrollView extends StatelessWidget {
 
   CustomScrollView buildCustomScrollView(ScrollPhysics? physics) =>
       CustomScrollView(
-          scrollDirection: scrollDirection,
-          reverse: reverse,
-          controller: controller,
-          primary: primary,
-          scrollBehavior: scrollBehavior,
-          shrinkWrap: _shrinkWrap(shrinkWrap, physics),
-          center: center,
-          anchor: anchor,
-          cacheExtent: cacheExtent,
-          slivers: buildSlivers,
-          semanticChildCount: semanticChildCount,
-          dragStartBehavior: dragStartBehavior,
-          keyboardDismissBehavior: keyboardDismissBehavior,
-          restorationId: restorationId,
-          clipBehavior: clipBehavior,
-          physics: physics);
+        scrollDirection: scrollDirection,
+        reverse: reverse,
+        controller: controller,
+        primary: primary,
+        scrollBehavior: scrollBehavior,
+        shrinkWrap: _shrinkWrap(shrinkWrap, physics),
+        center: center,
+        anchor: anchor,
+        cacheExtent: cacheExtent,
+        slivers: buildSlivers,
+        semanticChildCount: semanticChildCount,
+        dragStartBehavior: dragStartBehavior,
+        keyboardDismissBehavior: keyboardDismissBehavior,
+        restorationId: restorationId,
+        clipBehavior: clipBehavior,
+        physics: physics,
+        hitTestBehavior: hitTestBehavior,
+      );
 }
 
 class NoScrollBehavior extends ScrollBehavior {

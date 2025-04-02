@@ -1,6 +1,6 @@
 name: fl_scroll_view
 description: "fl_scroll_view encapsulates and extends easy_refresh and flutter_staggered_grid_view."
-version: 0.1.0
+version: 1.0.0
 repository: https://github.com/Wayaer/fl_scroll_view
 
 environment:

@@ -1,27 +1,79 @@
 import 'package:device_preview_minus/device_preview_minus.dart';
 import 'package:example/src/nested_list_page.dart';
-import 'package:example/src/scroll_list_page.dart';
+import 'package:example/src/scroll_list_grid/scroll_list_grid_page.dart';
 import 'package:example/src/scroll_view_page.dart';
 import 'package:fl_scroll_view/fl_scroll_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() {
-  runApp(DevicePreview(
-      enabled: kIsWeb,
-      defaultDevice: Devices.ios.iPhone13Mini,
-      builder: (context) => MaterialApp(
-          locale: DevicePreview.locale(context),
-          theme: ThemeData.light(),
-          darkTheme: ThemeData.dark(),
-          debugShowCheckedModeBanner: false,
-          builder: (BuildContext context, Widget? child) {
-            return DevicePreview.appBuilder(context, child);
-          },
-          home: Scaffold(
-              appBar: AppBar(title: const Text('FlScrollView')),
-              body: const HomePage()))));
+  EasyRefresh.defaultHeaderBuilder = () => const ClassicHeader(
+      dragText: '请尽情拉我',
+      armedText: '可以松开我了',
+      readyText: '我要开始刷新了',
+      processingText: '我在拼命刷新中',
+      processedText: '我已经刷新完成了',
+      failedText: '我刷新失败了唉',
+      noMoreText: '没有更多了',
+      showMessage: false);
+  EasyRefresh.defaultFooterBuilder = () => const ClassicFooter(
+      dragText: '请尽情拉我',
+      armedText: '可以松开我了',
+      readyText: '我要准备加载了',
+      processingText: '我在拼命加载中',
+      processedText: '我已经加载完成了',
+      failedText: '我加载失败了唉',
+      noMoreText: '没有更多了哦',
+      showMessage: false);
+  runApp(App());
+}
+
+class App extends StatelessWidget {
+  const App({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return DevicePreview(
+        enabled: kIsWeb,
+        defaultDevice: Devices.ios.iPhone13Mini,
+        builder: (context) => MaterialApp(
+            navigatorKey: navigatorKey,
+            locale: DevicePreview.locale(context),
+            theme: ThemeData.light(),
+            darkTheme: ThemeData.dark(),
+            debugShowCheckedModeBanner: false,
+            builder: (BuildContext context, Widget? child) {
+              return DevicePreview.appBuilder(context, child);
+            },
+            home: Scaffold(
+                appBar: AppBar(title: const Text('FlScrollView')),
+                body: const HomePage())));
+  }
+}
+
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        children: [
+          ElevatedText('FlScrollListGrid',
+              onTap: () => push(const FlScrollListGridPage())),
+          ElevatedText('FlRefreshScrollView',
+              onTap: () => push(const FlRefreshScrollViewPage())),
+          ElevatedText('FlSliverPersistentHeader',
+              onTap: () => push(const FlSliverPersistentHeaderPage())),
+          ElevatedText('FlSliverPinnedToBoxAdapter',
+              onTap: () => push(const FlSliverPinnedToBoxAdapterPage())),
+          ElevatedText('NestedScrollView',
+              onTap: () => push(const NestedScrollViewPage())),
+        ]);
+  }
 }
 
 const List<Color> colorList = <Color>[
@@ -56,47 +108,9 @@ class ElevatedText extends StatelessWidget {
   }
 }
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
-
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  final ScrollController scrollController = ScrollController();
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        children: [
-          ElevatedText('RefreshScrollView',
-              onTap: () => push(const RefreshScrollViewPage())),
-          ElevatedText('ExtendedSliverPersistentHeader',
-              onTap: () => push(const FlSliverPersistentHeaderPage())),
-          ElevatedText('NestedList', onTap: () => push(const NestedListPage())),
-          ElevatedText('ScrollList', onTap: () => push(const ScrollListPage())),
-          ElevatedText('ScrollList.builder',
-              onTap: () => push(const ScrollListBuilderPage())),
-          ElevatedText('ScrollList.builder separated',
-              onTap: () => push(const ScrollListSeparatedPage())),
-          ElevatedText('ScrollList.builder GridStyle.none',
-              onTap: () => push(const ScrollListGridPage(GridStyle.none))),
-          ElevatedText('ScrollList.builder GridStyle.masonry',
-              onTap: () => push(const ScrollListGridPage(GridStyle.masonry))),
-          ElevatedText('ScrollList.builder GridStyle.aligned',
-              onTap: () => push(const ScrollListGridPage(GridStyle.aligned))),
-          ElevatedText('ScrollList.count',
-              onTap: () => push(const ScrollListCountPage())),
-          ElevatedText('ScrollList.builder placeholder',
-              onTap: () => push(const ScrollListPlaceholderPage())),
-        ]);
-  }
-
-  void push(Widget widget) {
-    showCupertinoModalPopup(context: context, builder: (_) => widget);
-  }
+void push(Widget widget) {
+  showCupertinoModalPopup(
+      context: navigatorKey.currentContext!, builder: (_) => widget);
 }
 
 class ColorEntry extends StatelessWidget {

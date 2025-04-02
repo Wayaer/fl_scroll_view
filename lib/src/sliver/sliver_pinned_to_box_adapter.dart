@@ -3,17 +3,15 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-class SliverPinnedToBoxAdapter extends SingleChildRenderObjectWidget {
-  const SliverPinnedToBoxAdapter({super.key, super.child});
+class FlSliverPinnedToBoxAdapter extends SingleChildRenderObjectWidget {
+  const FlSliverPinnedToBoxAdapter({super.key, super.child});
 
   @override
-  RenderSliverPinnedToBoxAdapter createRenderObject(BuildContext context) =>
-      RenderSliverPinnedToBoxAdapter();
+  RenderSliverSingleBoxAdapter createRenderObject(BuildContext context) =>
+      _FlRenderSliverPinnedToBoxAdapter();
 }
 
-class RenderSliverPinnedToBoxAdapter extends RenderSliverSingleBoxAdapter {
-  RenderSliverPinnedToBoxAdapter({super.child});
-
+class _FlRenderSliverPinnedToBoxAdapter extends RenderSliverSingleBoxAdapter {
   @override
   void performLayout() {
     if (child == null) {

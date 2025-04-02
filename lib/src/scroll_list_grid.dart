@@ -2,14 +2,21 @@ import 'package:fl_scroll_view/fl_scroll_view.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-class ScrollList extends RefreshScrollView {
-  /// 滑动类型设置 [physics]
-  /// AlwaysScrollableScrollPhysics() 总是可以滑动
-  /// NeverScrollableScrollPhysics() 禁止滚动
-  /// BouncingScrollPhysics()  内容超过一屏 有回弹效果
-  /// ClampingScrollPhysics()  包裹内容 不会有回弹
-
-  const ScrollList({
+/// 滑动类型设置 [physics]
+/// AlwaysScrollableScrollPhysics() 总是可以滑动
+/// NeverScrollableScrollPhysics() 禁止滚动
+/// BouncingScrollPhysics()  内容超过一屏 有回弹效果
+/// ClampingScrollPhysics()  包裹内容 不会有回弹
+///
+///
+/// [FlSliverListGrid.builder]
+/// [FlSliverListGrid.count]
+///
+/// [FlSliverListGrid]
+/// [FlSliverListGrid.builder]
+/// [FlSliverListGrid.count]
+class FlScrollListGrid extends FlRefreshScrollView {
+  const FlScrollListGrid({
     super.key,
     super.reverse = false,
     super.shrinkWrap,
@@ -24,12 +31,13 @@ class ScrollList extends RefreshScrollView {
     super.padding,
     super.refreshConfig,
     super.controller,
+    super.hitTestBehavior = HitTestBehavior.opaque,
     required this.sliver,
     this.header,
     this.footer,
   });
 
-  ScrollList.builder({
+  FlScrollListGrid.builder({
     super.key,
     super.reverse = false,
     super.shrinkWrap,
@@ -44,6 +52,7 @@ class ScrollList extends RefreshScrollView {
     super.padding,
     super.refreshConfig,
     super.controller,
+    super.hitTestBehavior = HitTestBehavior.opaque,
     ChildIndexGetter? findChildIndexCallback,
     SemanticIndexCallback semanticIndexCallback = kDefaultSemanticIndexCallback,
     bool addAutomaticKeepALives = true,
@@ -86,15 +95,24 @@ class ScrollList extends RefreshScrollView {
     /// [placeholderFill]=true,[placeholder] use [SliverFillRemaining]
     bool? placeholderFill,
 
+    /// Indicates whether the child should stretch to fill the overscroll area
+    /// created by certain scroll physics, such as iOS' default scroll physics.
+    /// This flag is only relevant when [placeholderFill] is true.
+    ///
+    /// Defaults to false, meaning that the default behavior is for the child to
+    /// maintain its size and not extend into the overscroll area.
+    bool placeholderFillOverscroll = false,
+
     /// header
     this.header,
 
     /// footer
     this.footer,
   }) : sliver = [
-          SliverListGrid.builder(
+          FlSliverListGrid.builder(
               placeholder: placeholder,
               placeholderFill: _placeholderFill(placeholderFill, physics),
+              placeholderFillOverscroll: placeholderFillOverscroll,
               mainAxisExtent: mainAxisExtent,
               maxCrossAxisExtent: maxCrossAxisExtent,
               childAspectRatio: childAspectRatio,
@@ -114,7 +132,7 @@ class ScrollList extends RefreshScrollView {
               prototypeItem: prototypeItem)
         ];
 
-  ScrollList.count({
+  FlScrollListGrid.count({
     super.key,
     super.reverse = false,
     super.shrinkWrap,
@@ -129,6 +147,7 @@ class ScrollList extends RefreshScrollView {
     super.padding,
     super.refreshConfig,
     super.controller,
+    super.hitTestBehavior = HitTestBehavior.opaque,
     SemanticIndexCallback semanticIndexCallback = kDefaultSemanticIndexCallback,
     bool addAutomaticKeepALives = true,
     bool addRepaintBoundaries = true,
@@ -170,16 +189,25 @@ class ScrollList extends RefreshScrollView {
     /// [placeholderFill]=true,[placeholder] use [SliverFillRemaining]
     bool? placeholderFill,
 
+    /// Indicates whether the child should stretch to fill the overscroll area
+    /// created by certain scroll physics, such as iOS' default scroll physics.
+    /// This flag is only relevant when [placeholderFill] is true.
+    ///
+    /// Defaults to false, meaning that the default behavior is for the child to
+    /// maintain its size and not extend into the overscroll area.
+    bool placeholderFillOverscroll = false,
+
     /// header
     this.header,
 
     /// footer
     this.footer,
   }) : sliver = [
-          SliverListGrid.count(
+          FlSliverListGrid.count(
               semanticIndexCallback: semanticIndexCallback,
               placeholder: placeholder,
               placeholderFill: _placeholderFill(placeholderFill, physics),
+              placeholderFillOverscroll: placeholderFillOverscroll,
               mainAxisExtent: mainAxisExtent,
               maxCrossAxisExtent: maxCrossAxisExtent,
               childAspectRatio: childAspectRatio,

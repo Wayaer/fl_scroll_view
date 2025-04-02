@@ -7,72 +7,80 @@ class FlSliverPersistentHeaderPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ScrollController scrollController = ScrollController();
     return Scaffold(
         appBar: AppBarText('FlSliverPersistentHeader'),
-        body: RefreshScrollView(
-            controller: scrollController,
-            padding: const EdgeInsets.all(10),
-            slivers: [
-              ...slivers,
-              SliverListGrid.builder(
-                  itemCount: colorList.length,
-                  maxCrossAxisExtent: 60,
-                  separatorBuilder: (_, int index) {
-                    return Text('s$index');
-                  },
-                  itemBuilder: (_, int index) {
-                    return ColorEntry(index, colorList[index]);
-                  }),
-              SliverListGrid.count(
-                  crossAxisCount: 3,
-                  mainAxisSpacing: 10,
-                  crossAxisSpacing: 10,
-                  children: colorList
-                      .asMap()
-                      .entries
-                      .map((MapEntry<int, Color> entry) =>
-                          ColorEntry(entry.key, entry.value))
-                      .toList()),
-            ]));
+        body: FlRefreshScrollView(padding: const EdgeInsets.all(10), slivers: [
+          FlSliverPersistentHeader(
+              pinned: true,
+              floating: true,
+              minHeight: 0,
+              maxHeight: 100,
+              child: Container(
+                  color: colorList[9],
+                  alignment: Alignment.center,
+                  child: const Text('FlSliverPersistentHeader',
+                      style: TextStyle(color: Colors.black)))),
+          FlSliverListGrid.builder(
+              itemCount: colorList.length,
+              crossAxisCount: 3,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              itemBuilder: (_, int index) {
+                return ColorEntry(index, colorList[index]);
+              }),
+        ]));
   }
-
-  List<Widget> get slivers => [
-        FlSliverPersistentHeader(
-            pinned: true,
-            floating: true,
-            minHeight: 10,
-            child: Container(
-                height: 60,
-                color: colorList[9],
-                alignment: Alignment.center,
-                child: const Text('FlSliverPersistentHeader',
-                    style: TextStyle(color: Colors.black)))),
-      ];
 }
 
-class RefreshScrollViewPage extends StatelessWidget {
-  const RefreshScrollViewPage({super.key});
+class FlSliverPinnedToBoxAdapterPage extends StatelessWidget {
+  const FlSliverPinnedToBoxAdapterPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBarText('FlSliverPinnedToBoxAdapter'),
+        body: FlRefreshScrollView(padding: const EdgeInsets.all(10), slivers: [
+          FlSliverPinnedToBoxAdapter(
+              child: Container(
+                  height: 100,
+                  color: colorList[9],
+                  alignment: Alignment.center,
+                  child: const Text('FlSliverPersistentHeader',
+                      style: TextStyle(color: Colors.black)))),
+          FlSliverListGrid.builder(
+              itemCount: colorList.length,
+              crossAxisCount: 3,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              itemBuilder: (_, int index) {
+                return ColorEntry(index, colorList[index]);
+              }),
+        ]));
+  }
+}
+
+class FlRefreshScrollViewPage extends StatelessWidget {
+  const FlRefreshScrollViewPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     final ScrollController scrollController = ScrollController();
     return Scaffold(
-        appBar: AppBarText('RefreshScrollView'),
-        body: RefreshScrollView(
+        appBar: AppBarText('FlRefreshScrollView'),
+        body: FlRefreshScrollView(
             controller: scrollController,
             padding: const EdgeInsets.all(10),
-            refreshConfig: RefreshConfig(onRefresh: (_) async {
+            refreshConfig: FlEasyRefreshConfig(onRefresh: (_) async {
               debugPrint('onRefresh');
               await Future.delayed(const Duration(seconds: 2));
-              return EasyRefreshType.refreshSuccess;
+              return FlEasyRefreshResult.refreshSuccess;
             }, onLoad: (_) async {
-              debugPrint('onLoading');
+              debugPrint('onLoad');
               await Future.delayed(const Duration(seconds: 2));
-              return EasyRefreshType.loadingSuccess;
+              return FlEasyRefreshResult.loadingSuccess;
             }),
             slivers: [
-              SliverListGrid.builder(
+              FlSliverListGrid.builder(
                   itemCount: colorList.length,
                   maxCrossAxisExtent: 60,
                   separatorBuilder: (_, int index) {
@@ -81,7 +89,7 @@ class RefreshScrollViewPage extends StatelessWidget {
                   itemBuilder: (_, int index) {
                     return ColorEntry(index, colorList[index]);
                   }),
-              SliverListGrid.count(
+              FlSliverListGrid.count(
                   crossAxisCount: 3,
                   mainAxisSpacing: 10,
                   crossAxisSpacing: 10,

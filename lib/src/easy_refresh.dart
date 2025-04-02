@@ -3,69 +3,61 @@ import 'dart:async';
 import 'package:fl_scroll_view/fl_scroll_view.dart';
 import 'package:flutter/material.dart';
 
-class RefreshControllers {
-  factory RefreshControllers() => _singleton ??= RefreshControllers._();
+class FlEasyRefreshControllers {
+  factory FlEasyRefreshControllers() =>
+      _singleton ??= FlEasyRefreshControllers._();
 
-  RefreshControllers._();
+  FlEasyRefreshControllers._();
 
-  static RefreshControllers? _singleton;
+  static FlEasyRefreshControllers? _singleton;
 
+  /// 所有的控制器
   final Map<int, EasyRefreshController> _controllers = {};
 
-  void _add(EasyRefreshController controller) {
-    _controllers[controller.hashCode] = controller;
-  }
+  Map<int, EasyRefreshController> get controllers => _controllers;
 
-  EasyRefreshController? get(int hashCode) => _controllers[hashCode];
-
-  void _remove(int hashCode) {
-    _controllers.remove(hashCode);
-  }
+  /// 根据 id 获取控制器
+  EasyRefreshController? get(int controllersId) => _controllers[controllersId];
 
   /// 最近一次调用刷新组件的 Controller
-  EasyRefreshController? _current;
+  EasyRefreshController? _last;
 
-  EasyRefreshController? get current => _current;
-
-  /// 调用当前刷新
-  void call(EasyRefreshType type, {EasyRefreshController? controller}) {
-    (controller ?? current)?.call(type);
-  }
+  EasyRefreshController? get last => _last;
 }
 
 extension ExtensionEasyRefreshController on EasyRefreshController {
-  void call(EasyRefreshType type) {
-    switch (type) {
-      case EasyRefreshType.refresh:
+  void call(FlEasyRefreshResult result) {
+    switch (result) {
+      case FlEasyRefreshResult.refresh:
         callRefresh();
         break;
-      case EasyRefreshType.refreshSuccess:
+      case FlEasyRefreshResult.refreshSuccess:
         finishRefresh(IndicatorResult.success);
         break;
-      case EasyRefreshType.refreshFailed:
+      case FlEasyRefreshResult.refreshFailed:
         finishRefresh(IndicatorResult.fail);
         break;
-      case EasyRefreshType.refreshNoMore:
+      case FlEasyRefreshResult.refreshNoMore:
         finishRefresh(IndicatorResult.noMore);
         break;
-      case EasyRefreshType.loading:
+      case FlEasyRefreshResult.loading:
         callLoad();
         break;
-      case EasyRefreshType.loadingSuccess:
+      case FlEasyRefreshResult.loadingSuccess:
         finishLoad(IndicatorResult.success);
         break;
-      case EasyRefreshType.loadFailed:
+      case FlEasyRefreshResult.loadFailed:
         finishLoad(IndicatorResult.fail);
         break;
-      case EasyRefreshType.loadNoMore:
+      case FlEasyRefreshResult.loadNoMore:
         finishLoad(IndicatorResult.noMore);
         break;
     }
   }
 }
 
-/// 刷新类型
-enum EasyRefreshType {
+/// 刷新操作
+enum FlEasyRefreshResult {
   /// 触发刷新
   refresh,
 
@@ -91,31 +83,28 @@ enum EasyRefreshType {
   loadNoMore,
 }
 
-typedef EasyRefreshControllerCallback = void Function(
-    EasyRefreshController controller);
-
-class EasyRefreshed extends StatefulWidget {
-  const EasyRefreshed({
+class FlEasyRefresh extends StatefulWidget {
+  const FlEasyRefresh({
     super.key,
     this.child,
     this.builder,
     required this.config,
   }) : assert(child != null || builder != null);
 
-  /// 用于 非ScrollView
+  /// [EasyRefresh]
   final Widget? child;
 
-  /// 用于 ScrollView
+  /// [EasyRefresh.builder]
   final ERChildBuilder? builder;
 
-  /// 刷新组件配置信息
-  final RefreshConfig config;
+  /// [EasyRefresh]配置信息
+  final FlEasyRefreshConfig config;
 
   @override
-  State<EasyRefreshed> createState() => _EasyRefreshedState();
+  State<FlEasyRefresh> createState() => _FlEasyRefreshState();
 }
 
-class _EasyRefreshedState extends State<EasyRefreshed> {
+class _FlEasyRefreshState extends State<FlEasyRefresh> {
   late EasyRefreshController controller;
 
   @override
@@ -124,48 +113,58 @@ class _EasyRefreshedState extends State<EasyRefreshed> {
     super.initState();
   }
 
-  RefreshConfig get config => widget.config;
-
   void initController() {
     controller = config.controller ??
         EasyRefreshController(
             controlFinishRefresh: config.onRefresh != null,
             controlFinishLoad: config.onLoad != null);
-    RefreshControllers()._add(controller);
+    controllers[controllerId] = controller;
   }
 
+  int get controllerId => widget.config.controllerId ?? controller.hashCode;
+
+  FlEasyRefreshConfig get config => widget.config;
+
+  Map<int, EasyRefreshController> get controllers =>
+      FlEasyRefreshControllers()._controllers;
+
   @override
-  void didUpdateWidget(covariant EasyRefreshed oldWidget) {
+  void didUpdateWidget(covariant FlEasyRefresh oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.config != widget.config) {
       if (config.controller != null && controller != config.controller) {
-        controller.dispose();
+        removeController();
+        initController();
       }
-      initController();
       if (mounted) setState(() {});
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return EasyRefresh.builder(
+    FutureOr Function()? onRefresh;
+    if (config.onRefresh != null) {
+      onRefresh = () async {
+        FlEasyRefreshControllers()._last = controller;
+        final result = await config.onRefresh!.call(controller);
+        if (result is FlEasyRefreshResult) controller(result);
+      };
+    }
+    FutureOr Function()? onLoad;
+    if (config.onLoad != null) {
+      onLoad = () async {
+        FlEasyRefreshControllers()._last = controller;
+        final result = await config.onLoad!.call(controller);
+        if (result is FlEasyRefreshResult) controller(result);
+      };
+    }
+    if (widget.builder != null) {
+      return EasyRefresh.builder(
         controller: controller,
-        header: config.header ?? FlScrollView.globalRefreshHeader,
-        footer: config.footer ?? FlScrollView.globalRefreshFooter,
-        onRefresh: config.onRefresh == null
-            ? null
-            : () async {
-                RefreshControllers()._current = controller;
-                final result = await config.onRefresh!.call(controller);
-                if (result is EasyRefreshType) controller(result);
-              },
-        onLoad: config.onLoad == null
-            ? null
-            : () async {
-                RefreshControllers()._current = controller;
-                final result = await config.onLoad!.call(controller);
-                if (result is EasyRefreshType) controller(result);
-              },
+        header: config.header,
+        footer: config.footer,
+        onRefresh: onRefresh,
+        onLoad: onLoad,
         scrollController: config.scrollController,
         spring: config.spring,
         frictionFactor: config.frictionFactor,
@@ -179,31 +178,68 @@ class _EasyRefreshedState extends State<EasyRefreshed> {
         callLoadOverOffset: config.callLoadOverOffset,
         fit: config.fit,
         clipBehavior: config.clipBehavior,
-        childBuilder: widget.builder ?? (_, __) => widget.child!,
+        childBuilder: widget.builder,
         canLoadAfterNoMore: config.canLoadAfterNoMore,
         canRefreshAfterNoMore: config.canRefreshAfterNoMore,
         triggerAxis: config.triggerAxis,
-        scrollBehaviorBuilder: config.scrollBehaviorBuilder);
+        scrollBehaviorBuilder: config.scrollBehaviorBuilder,
+      );
+    }
+    if (widget.child != null) {
+      return EasyRefresh(
+        controller: controller,
+        header: config.header,
+        footer: config.footer,
+        onRefresh: onRefresh,
+        onLoad: onLoad,
+        scrollController: config.scrollController,
+        spring: config.spring,
+        frictionFactor: config.frictionFactor,
+        notRefreshHeader: config.notRefreshHeader,
+        notLoadFooter: config.notLoadFooter,
+        simultaneously: config.simultaneously,
+        resetAfterRefresh: config.resetAfterRefresh,
+        refreshOnStart: config.refreshOnStart,
+        refreshOnStartHeader: config.refreshOnStartHeader,
+        callRefreshOverOffset: config.callRefreshOverOffset,
+        callLoadOverOffset: config.callLoadOverOffset,
+        fit: config.fit,
+        clipBehavior: config.clipBehavior,
+        canLoadAfterNoMore: config.canLoadAfterNoMore,
+        canRefreshAfterNoMore: config.canRefreshAfterNoMore,
+        triggerAxis: config.triggerAxis,
+        scrollBehaviorBuilder: config.scrollBehaviorBuilder,
+        child: widget.child,
+      );
+    }
+    return SizedBox();
   }
 
   @override
   void dispose() {
-    controller.dispose();
-    if (RefreshControllers().current == controller) {
-      RefreshControllers()._current = null;
-      RefreshControllers()._remove(controller.hashCode);
-    }
+    removeController();
     super.dispose();
+  }
+
+  void removeController() {
+    if (!config.disposeController) return;
+    controller.dispose();
+    controllers.remove(controllerId);
+    if (controller.hashCode == FlEasyRefreshControllers()._last.hashCode) {
+      FlEasyRefreshControllers()._last = controllers.values.lastOrNull;
+    }
   }
 }
 
-/// return [Null] or [EasyRefreshType]
-typedef EasyRefreshCallback = FutureOr<dynamic> Function(
+/// return [Null] or [FlEasyRefreshResult]
+typedef FlEasyRefreshCallback = FutureOr<dynamic> Function(
     EasyRefreshController controller);
 
-class RefreshConfig {
-  const RefreshConfig(
+class FlEasyRefreshConfig {
+  const FlEasyRefreshConfig(
       {this.controller,
+      this.controllerId,
+      this.disposeController = true,
       this.onRefresh,
       this.onLoad,
       this.header,
@@ -230,11 +266,17 @@ class RefreshConfig {
   /// 若想关闭刷新组件可以通过发送消息
   final EasyRefreshController? controller;
 
+  /// 是否销毁 controller 默认 true
+  final bool disposeController;
+
+  /// 每个 controller id 用于[FlEasyRefreshControllers.controllers]获取 controller
+  final int? controllerId;
+
   /// 下拉刷新回调(null为不开启刷新)
-  final EasyRefreshCallback? onRefresh;
+  final FlEasyRefreshCallback? onRefresh;
 
   /// 上拉加载回调(null为不开启加载)
-  final EasyRefreshCallback? onLoad;
+  final FlEasyRefreshCallback? onLoad;
 
   /// CustomHeader
   final Header? header;
@@ -302,10 +344,10 @@ class RefreshConfig {
   /// Won't build widget.
   final NotLoadFooter? notLoadFooter;
 
-  RefreshConfig copyWith({
+  FlEasyRefreshConfig copyWith({
     EasyRefreshController? controller,
-    EasyRefreshCallback? onRefresh,
-    EasyRefreshCallback? onLoad,
+    FlEasyRefreshCallback? onRefresh,
+    FlEasyRefreshCallback? onLoad,
     Header? header,
     Footer? footer,
     SpringDescription? spring,
@@ -326,7 +368,7 @@ class RefreshConfig {
     NotRefreshHeader? notRefreshHeader,
     NotLoadFooter? notLoadFooter,
   }) =>
-      RefreshConfig(
+      FlEasyRefreshConfig(
           controller: controller ?? this.controller,
           onRefresh: onRefresh ?? this.onRefresh,
           onLoad: onLoad ?? this.onLoad,
@@ -354,7 +396,7 @@ class RefreshConfig {
           scrollBehaviorBuilder:
               scrollBehaviorBuilder ?? this.scrollBehaviorBuilder);
 
-  RefreshConfig marge([RefreshConfig? config]) => copyWith(
+  FlEasyRefreshConfig marge([FlEasyRefreshConfig? config]) => copyWith(
       controller: config?.controller,
       onRefresh: config?.onRefresh,
       onLoad: config?.onLoad,

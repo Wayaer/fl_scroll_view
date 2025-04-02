@@ -11,8 +11,9 @@ enum GridStyle {
 int kDefaultSemanticIndexCallback(Widget _, int localIndex) => localIndex;
 
 /// 组合[SliverList]、[SliverGrid]、[SliverFixedExtentList]、[SliverPrototypeExtentList]、[SliverMasonryGrid]、[SliverAlignedGrid]
-class SliverListGrid extends StatelessWidget {
-  const SliverListGrid.builder({
+class FlSliverListGrid extends StatelessWidget {
+  /// 大量子组件,需要复用
+  const FlSliverListGrid.builder({
     super.key,
     required this.itemBuilder,
     this.separatorBuilder,
@@ -33,9 +34,11 @@ class SliverListGrid extends StatelessWidget {
     this.addSemanticIndexes = true,
     this.placeholder,
     this.placeholderFill,
+    this.placeholderFillOverscroll = false,
   }) : children = null;
 
-  const SliverListGrid.count({
+  /// 少量子组件可使用 children 无需复用
+  const FlSliverListGrid.count({
     super.key,
     required this.children,
     this.gridStyle = GridStyle.none,
@@ -53,12 +56,21 @@ class SliverListGrid extends StatelessWidget {
     this.addSemanticIndexes = true,
     this.placeholder,
     this.placeholderFill,
+    this.placeholderFillOverscroll = false,
   })  : assert(children != null),
         assert(gridStyle != GridStyle.aligned),
         itemBuilder = null,
         itemCount = null,
         separatorBuilder = null,
         findChildIndexCallback = null;
+
+  /// 大量子组件,需要复用
+  final IndexedWidgetBuilder? itemBuilder;
+  final IndexedWidgetBuilder? separatorBuilder;
+  final int? itemCount;
+
+  /// 少量子组件可使用 children 无需复用
+  final List<Widget>? children;
 
   /// 横轴子元素的数量 自适应最大像素
   /// use [SliverGridDelegateWithFixedCrossAxisCount] or [SliverSimpleGridDelegateWithFixedCrossAxisCount]
@@ -82,14 +94,6 @@ class SliverListGrid extends StatelessWidget {
   /// [gridStyle] == [GridStyle.none] 生效
   final double? mainAxisExtent;
 
-  /// 大量子组件
-  final IndexedWidgetBuilder? itemBuilder;
-  final IndexedWidgetBuilder? separatorBuilder;
-  final int? itemCount;
-
-  /// 少量子组件可使用 children
-  final List<Widget>? children;
-
   /// use [SliverFixedExtentList]、[itemExtent] 优先 [prototypeItem]
   final double? itemExtent;
 
@@ -108,13 +112,25 @@ class SliverListGrid extends StatelessWidget {
   /// [placeholderFill]=true,[placeholder] use [SliverFillRemaining]
   final bool? placeholderFill;
 
+  /// Indicates whether the child should stretch to fill the overscroll area
+  /// created by certain scroll physics, such as iOS' default scroll physics.
+  /// This flag is only relevant when [placeholderFill] is true.
+  ///
+  /// Defaults to false, meaning that the default behavior is for the child to
+  /// maintain its size and not extend into the overscroll area.
+  final bool placeholderFillOverscroll;
+
+  /// [GridStyle] grid 样式
   final GridStyle gridStyle;
 
   @override
   Widget build(BuildContext context) {
     if ((children ?? []).isEmpty && itemCount == 0) {
-      return true == placeholderFill
-          ? SliverFillRemaining(hasScrollBody: false, child: placeholder)
+      return placeholderFill == true
+          ? SliverFillRemaining(
+              hasScrollBody: false,
+              fillOverscroll: placeholderFillOverscroll,
+              child: placeholder)
           : SliverToBoxAdapter(child: placeholder);
     }
     late SliverChildDelegate delegate;
