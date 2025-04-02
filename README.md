@@ -19,12 +19,12 @@ Widget build(BuildContext context) {
           onRefresh: (EasyRefreshController controller) async {
             debugPrint('onRefresh');
             await Future.delayed(const Duration(seconds: 2), () {
-              FlEasyRefreshControllers().call(FlEasyRefreshResult.refreshSuccess);
+              controller(FlEasyRefreshResult.refreshSuccess);
             });
           }, onLoad: (EasyRefreshController controller) async {
         debugPrint('onLoad');
         await Future.delayed(const Duration(seconds: 2), () {
-          FlEasyRefreshControllers().call(FlEasyRefreshResult.loadingSuccess);
+          controller(FlEasyRefreshResult.loadingSuccess);
         });
       }),
       children: []);
@@ -49,12 +49,12 @@ Widget build(BuildContext context) {
           onRefresh: (EasyRefreshController controller) async {
             debugPrint('onRefresh');
             await Future.delayed(const Duration(seconds: 2), () {
-              FlEasyRefreshControllers().call(FlEasyRefreshResult.refreshSuccess);
+              controller(FlEasyRefreshResult.refreshSuccess);
             });
           }, onLoad: (EasyRefreshController controller) async {
         debugPrint('onLoad');
         await Future.delayed(const Duration(seconds: 2), () {
-          FlEasyRefreshControllers().call(FlEasyRefreshResult.loadingSuccess);
+          controller(FlEasyRefreshResult.loadingSuccess);
         });
       }),
       children: []);
@@ -67,18 +67,14 @@ Widget build(BuildContext context) {
 ```dart
 Widget build(BuildContext context) {
   return FlRefreshScrollView(
-      controller: scrollController,
-      refreshConfig: FlEasyRefreshConfig(
-          onRefresh: (EasyRefreshController controller) async {
-            debugPrint('onRefresh');
-            await Future.delayed(const Duration(seconds: 2), () {
-              FlEasyRefreshControllers().call(FlEasyRefreshResult.refreshSuccess);
-            });
-          }, onLoad: (EasyRefreshController controller) async {
+      refreshConfig: FlEasyRefreshConfig(onRefresh: (_) async {
+        debugPrint('onRefresh');
+        await Future.delayed(const Duration(seconds: 2));
+        return FlEasyRefreshResult.refreshSuccess;
+      }, onLoad: (_) async {
         debugPrint('onLoad');
-        await Future.delayed(const Duration(seconds: 2), () {
-          FlEasyRefreshControllers().call(FlEasyRefreshResult.loadingSuccess);
-        });
+        await Future.delayed(const Duration(seconds: 2));
+        return FlEasyRefreshResult.loadingSuccess;
       }),
       slivers: [
         FlSliverPersistentHeader(
@@ -96,20 +92,9 @@ Widget build(BuildContext context) {
             mainAxisSpacing: 10,
             crossAxisSpacing: 10,
             gridStyle: GridStyle.masonry,
-            separatorBuilder: (_, int index) {
-              return Text('s$index');
-            },
             itemBuilder: (_, int index) {
               return ColorEntry(index, colorList[index]);
             }),
-        FlSliverListGrid.count(
-            maxCrossAxisExtent: 100,
-            crossAxisCount: 3,
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-            gridStyle: GridStyle.masonry,
-            children: [
-            ]),
       ]);
 }
 ```

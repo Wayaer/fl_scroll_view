@@ -1,5 +1,5 @@
 import 'package:device_preview_minus/device_preview_minus.dart';
-import 'package:example/src/nested_list_page.dart';
+import 'package:example/src/nested_scroll_view_page.dart';
 import 'package:example/src/scroll_list_grid/scroll_list_grid_page.dart';
 import 'package:example/src/scroll_view_page.dart';
 import 'package:fl_scroll_view/fl_scroll_view.dart';

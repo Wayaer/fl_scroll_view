@@ -1,4 +1,4 @@
-## 1.0.0
+## 1.0.1
 
 * Rename `RefreshScrollView` to `FlRefreshScrollView`
 * Rename `SliverListGrid` to `FlSliverListGrid`
