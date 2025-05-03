@@ -45,7 +45,7 @@ class FlSliverPinnedToBoxAdapterPage extends StatelessWidget {
                   height: 100,
                   color: colorList[9],
                   alignment: Alignment.center,
-                  child: const Text('FlSliverPersistentHeader',
+                  child: const Text('FlSliverPinnedToBoxAdapter',
                       style: TextStyle(color: Colors.black)))),
           FlSliverListGrid.builder(
               itemCount: colorList.length,
