@@ -1,0 +1,12 @@
+# Do not ship example build outputs / IDE caches to pub.dev
+example/app/
+example/build/
+example/**/DerivedData/
+example/**/.dart_tool/
+example/**/Pods/
+**/doc/api/
+.dart_tool/
+.idea/
+*.iml
+*.lock
+format.sh
