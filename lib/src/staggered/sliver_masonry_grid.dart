@@ -195,19 +195,13 @@ class _RenderSliverMasonryGrid({
           while (child != null && index <= _lastFirstVisibleChildIndex) {
             positionChild(child);
             newPositionOfLastFirstChild = childScrollOffset(child)!;
-            child = insertAndLayoutChild(
-              childConstraints,
-              after: child,
-              parentUsesSize: true,
-            );
+            child = insertAndLayoutChild(childConstraints, after: child, parentUsesSize: true);
             index++;
           }
 
           final scrollOffsetCorrection = newPositionOfLastFirstChild - scrollOffset;
           if (scrollOffsetCorrection != 0) {
-            geometry = SliverGeometry(
-              scrollOffsetCorrection: scrollOffsetCorrection,
-            );
+            geometry = SliverGeometry(scrollOffsetCorrection: scrollOffsetCorrection);
             return;
           }
         }
@@ -292,17 +286,13 @@ class _RenderSliverMasonryGrid({
 
     earliestUsefulChild = firstChild;
     while (scrollOffsets.any((x) => x > scrollOffset)) {
-      earliestUsefulChild = insertAndLayoutLeadingChild(
-        childConstraints,
-        parentUsesSize: true,
-      );
+      earliestUsefulChild = insertAndLayoutLeadingChild(childConstraints, parentUsesSize: true);
 
       if (earliestUsefulChild == null) {
         // No child before firstChild. Continue from layoutOffset 0.
         // Do NOT emit scrollOffsetCorrection: -scrollOffset — that jumps the
         // whole CustomScrollView when masonry sits above later slivers.
-        final childParentData = _getParentData(firstChild!);
-        childParentData.layoutOffset = 0;
+        _getParentData(firstChild!).layoutOffset = 0;
         firstChild!.layout(childConstraints, parentUsesSize: true);
         earliestUsefulChild = firstChild;
         leadingChildWithLayout = earliestUsefulChild;
@@ -395,11 +385,7 @@ class _RenderSliverMasonryGrid({
       index += 1;
       if (!inLayoutRange) {
         if (child == null || indexOf(child!) != index) {
-          child = insertAndLayoutChild(
-            childConstraints,
-            after: trailingChildWithLayout,
-            parentUsesSize: true,
-          );
+          child = insertAndLayoutChild(childConstraints, after: trailingChildWithLayout, parentUsesSize: true);
           if (child == null) return false;
         } else {
           child!.layout(childConstraints, parentUsesSize: true);
@@ -477,7 +463,6 @@ class _RenderSliverMasonryGrid({
     if (estimatedMaxScrollOffset == endScrollOffset) childManager.setDidUnderflow(true);
     childManager.didFinishLayout();
   }
-
 }
 
 class SliverMasonryGrid extends SliverMultiBoxAdaptorWidget {

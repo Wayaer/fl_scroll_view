@@ -34,7 +34,6 @@
 *.lock
 
 # Example web deploy / local build output (see example/build_web.sh)
-example/app/
 example/**/DerivedData/
 
 # Web related

@@ -58,12 +58,8 @@ enum FlEasyRefreshResult {
 }
 
 class FlEasyRefresh extends StatefulWidget {
-  const FlEasyRefresh({
-    super.key,
-    this.child,
-    this.builder,
-    required this.config,
-  }) : assert(child != null || builder != null);
+  const FlEasyRefresh({super.key, this.child, this.builder, required this.config})
+    : assert(child != null || builder != null);
 
   /// [EasyRefresh]
   final Widget? child;
@@ -90,12 +86,7 @@ class _FlEasyRefreshState extends State<FlEasyRefresh> {
 
   void _initController() {
     _ownsController = config.controller == null;
-    controller =
-        config.controller ??
-        EasyRefreshController(
-          controlFinishRefresh: config.onRefresh != null,
-          controlFinishLoad: config.onLoad != null,
-        );
+    controller = config.controller ?? EasyRefreshController(controlFinishRefresh: true, controlFinishLoad: true);
   }
 
   FlEasyRefreshConfig get config => widget.config;
@@ -103,37 +94,44 @@ class _FlEasyRefreshState extends State<FlEasyRefresh> {
   @override
   void didUpdateWidget(covariant FlEasyRefresh oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final oldConfig = oldWidget.config;
-    final bool controllerChanged = !identical(config.controller, oldConfig.controller);
-    final bool finishFlagsChanged =
-        _ownsController &&
-        ((config.onRefresh != null) != (oldConfig.onRefresh != null) ||
-            (config.onLoad != null) != (oldConfig.onLoad != null));
-    if (controllerChanged || finishFlagsChanged) {
-      _releaseController(oldConfig);
+    if (!identical(config.controller, oldWidget.config.controller)) {
+      _releaseController(oldWidget.config);
       _initController();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    FutureOr<void> Function()? onRefresh;
-    if (config.onRefresh != null) {
-      onRefresh = () async {
-        final result = await config.onRefresh!.call(controller);
-        if (!mounted) return;
-        // 返回 FlEasyRefreshResult 时自动结束；也可在回调内直接 controller.finishRefresh(...)
-        if (result is FlEasyRefreshResult) controller(result);
-      };
-    }
-    FutureOr<void> Function()? onLoad;
-    if (config.onLoad != null) {
-      onLoad = () async {
-        final result = await config.onLoad!.call(controller);
-        if (!mounted) return;
-        if (result is FlEasyRefreshResult) controller(result);
-      };
-    }
+    final FutureOr<IndicatorResult?> Function()? onRefresh = config.onRefresh == null
+        ? null
+        : () async {
+            try {
+              final Object? result = await config.onRefresh!(controller);
+              if (!mounted) return null;
+              return _completeTask(result, refresh: true);
+            } catch (error, stack) {
+              final IndicatorResult? result = mounted
+                  ? _completeTask(FlEasyRefreshResult.refreshFailed, refresh: true)
+                  : null;
+              FlutterError.reportError(FlutterErrorDetails(exception: error, stack: stack, library: 'fl_scroll_view'));
+              return result;
+            }
+          };
+    final FutureOr<IndicatorResult?> Function()? onLoad = config.onLoad == null
+        ? null
+        : () async {
+            try {
+              final Object? result = await config.onLoad!(controller);
+              if (!mounted) return null;
+              return _completeTask(result, refresh: false);
+            } catch (error, stack) {
+              final IndicatorResult? result = mounted
+                  ? _completeTask(FlEasyRefreshResult.loadFailed, refresh: false)
+                  : null;
+              FlutterError.reportError(FlutterErrorDetails(exception: error, stack: stack, library: 'fl_scroll_view'));
+              return result;
+            }
+          };
     if (widget.builder != null) {
       return EasyRefresh.builder(
         controller: controller,
@@ -197,6 +195,58 @@ class _FlEasyRefreshState extends State<FlEasyRefresh> {
     return const SizedBox();
   }
 
+  /// 将回调返回值转换为 easy_refresh 的结束信号。
+  ///
+  /// controller 接管结束事件时由本库调用 finishRefresh / finishLoad；
+  /// 否则返回 [IndicatorResult]，交给 EasyRefresh 自动结束。
+  IndicatorResult? _completeTask(Object? result, {required bool refresh}) {
+    if (result is IndicatorResult) return _applyResult(result, refresh: refresh);
+    if (result is! FlEasyRefreshResult) return null;
+    switch (result) {
+      case FlEasyRefreshResult.refresh:
+        controller.callRefresh();
+        return null;
+      case FlEasyRefreshResult.loading:
+        controller.callLoad();
+        return null;
+      case FlEasyRefreshResult.refreshSuccess:
+        return _applyResult(IndicatorResult.success, refresh: true, current: refresh);
+      case FlEasyRefreshResult.refreshFailed:
+        return _applyResult(IndicatorResult.fail, refresh: true, current: refresh);
+      case FlEasyRefreshResult.refreshNoMore:
+        return _applyResult(IndicatorResult.noMore, refresh: true, current: refresh);
+      case FlEasyRefreshResult.loadingSuccess:
+        return _applyResult(IndicatorResult.success, refresh: false, current: refresh);
+      case FlEasyRefreshResult.loadFailed:
+        return _applyResult(IndicatorResult.fail, refresh: false, current: refresh);
+      case FlEasyRefreshResult.loadNoMore:
+        return _applyResult(IndicatorResult.noMore, refresh: false, current: refresh);
+    }
+  }
+
+  /// [refresh] 是结果对应的操作，[current] 是当前回调所属任务。
+  ///
+  /// 两者一致且 controller 未接管时，把结果返回给 EasyRefresh 自动结束；
+  /// 跨操作结果则按原有语义强制结束目标操作。
+  IndicatorResult? _applyResult(IndicatorResult result, {required bool refresh, bool? current}) {
+    final bool takesOver = refresh ? controller.controlFinishRefresh : controller.controlFinishLoad;
+    if (takesOver) {
+      if (refresh) {
+        controller.finishRefresh(result);
+      } else {
+        controller.finishLoad(result);
+      }
+      return null;
+    }
+    if (refresh == (current ?? refresh)) return result;
+    if (refresh) {
+      controller.finishRefresh(result, true);
+    } else {
+      controller.finishLoad(result, true);
+    }
+    return null;
+  }
+
   @override
   void dispose() {
     _releaseController(config);
@@ -222,11 +272,13 @@ class _FlEasyRefreshState extends State<FlEasyRefresh> {
 /// ```
 ///
 /// 返回值：
-/// - [FlEasyRefreshResult]：库在回调结束后自动 [EasyRefreshController.call]
+/// - [FlEasyRefreshResult]：库根据 controller 配置自动结束或触发对应操作
+/// - [IndicatorResult]：作为本次任务结果；外部 controller 未接管结束事件时由 EasyRefresh 自动结束
 /// - 其他 / `null`：需在回调内自行结束刷新或加载
-typedef FlEasyRefreshCallback = FutureOr<dynamic> Function(
-  EasyRefreshController controller,
-);
+///
+/// 回调抛出的异常会被捕获并标记为失败，同时通过 [FlutterError.reportError] 上报，
+/// 不会让指示器一直停留在 processing 状态。
+typedef FlEasyRefreshCallback = FutureOr<dynamic> Function(EasyRefreshController controller);
 
 class FlEasyRefreshConfig {
   const FlEasyRefreshConfig({
@@ -262,6 +314,9 @@ class FlEasyRefreshConfig {
   ///
   /// 业务侧结束刷新 / 加载优先在 [onRefresh] / [onLoad] 回调参数上操作，
   /// 或在 State 中持有本字段以便页面其他位置触发 [EasyRefreshController.callRefresh]。
+  ///
+  /// 无需手动开启 `controlFinishRefresh` / `controlFinishLoad`：
+  /// 未开启时库会把回调结果交给 EasyRefresh 自动结束，开启时则由库代为结束。
   final EasyRefreshController? controller;
 
   /// 是否在组件销毁时 dispose **内部创建** 的 controller，默认 true。

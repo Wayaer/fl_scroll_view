@@ -6,6 +6,7 @@ import 'package:fl_scroll_view/src/staggered/sliver_masonry_grid.dart';
 import 'package:fl_scroll_view/src/staggered/sliver_patterned_grids.dart';
 import 'package:fl_scroll_view/src/staggered/sliver_quilted_grid.dart';
 import 'package:fl_scroll_view/src/staggered/sliver_simple_grid_delegate.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
 /// [FlSliverListGrid] / [FlScrollListGrid] 的布局配置（密封类）。
@@ -432,6 +433,10 @@ class FlSliverListGrid extends StatelessWidget {
          separatorBuilder == null || layout is ListGridListLayout,
          'separatorBuilder 仅支持 ListGridLayout.list（与 ListView.separated 一致）',
        ),
+       assert(
+         layout is! ListGridAlignedLayout || (findChildIndexCallback == null && findItemIndexCallback == null),
+         'Aligned 布局按行批量构建，不支持 findChildIndexCallback / findItemIndexCallback',
+       ),
        children = null;
 
   /// 少量子组件时使用，直接传入 [children]，无需复用。
@@ -479,11 +484,13 @@ class FlSliverListGrid extends StatelessWidget {
   /// 根据 [Key] 查找 **child** 索引（含分隔符占位），透传给 [SliverChildBuilderDelegate]。
   ///
   /// 使用 [separatorBuilder] 时请改用 [findItemIndexCallback]（返回不含分隔符的 item 索引）。
+  /// [ListGridAlignedLayout] 不支持该回调。
   final ChildIndexGetter? findChildIndexCallback;
 
   /// 根据 [Key] 查找 **item** 索引（不含分隔符），对齐 [ListView.separated.findItemIndexCallback]。
   ///
   /// 使用 [separatorBuilder] 时库会将返回值映射为 `itemIndex * 2` 再交给 delegate。
+  /// [ListGridAlignedLayout] 不支持该回调。
   final ChildIndexGetter? findItemIndexCallback;
 
   /// 语义索引回调。使用 [separatorBuilder] 时，奇数位（分隔符）不参与语义索引，
@@ -512,13 +519,18 @@ class FlSliverListGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool isEmpty = children != null ? children!.isEmpty : itemCount == 0;
     if (isEmpty) {
-      return placeholderFill == true
-          ? SliverFillRemaining(
-              hasScrollBody: false,
-              fillOverscroll: placeholderFillOverscroll,
-              child: placeholder,
-            )
-          : SliverToBoxAdapter(child: placeholder);
+      if (placeholderFill != true) return SliverToBoxAdapter(child: placeholder);
+      return SliverLayoutBuilder(
+        builder: (BuildContext context, SliverConstraints constraints) {
+          // shrinkWrap / 无界主轴下 SliverFillRemaining 会因无限高度触发断言
+          if (!constraints.viewportMainAxisExtent.isFinite) return SliverToBoxAdapter(child: placeholder);
+          return SliverFillRemaining(
+            hasScrollBody: false,
+            fillOverscroll: placeholderFillOverscroll,
+            child: placeholder,
+          );
+        },
+      );
     }
 
     // 与 ListView.separated 一致：仅 list 布局 + separatorBuilder 时交错插入分隔符

@@ -10,7 +10,7 @@ void main() {
     final ScrollableState state = tester.state(find.byType(Scrollable).first);
     final labels = <String, double?>{};
 
-    for (var offset = 0.0; offset <= state.position.maxScrollExtent; offset += 200) {
+    for (double offset = 0.0; offset <= state.position.maxScrollExtent; offset += 200) {
       state.position.jumpTo(offset);
       await tester.pump();
       // Must not snap backwards more than a small epsilon.
@@ -19,11 +19,7 @@ void main() {
         greaterThanOrEqualTo(offset - 1.0),
         reason: 'jump $offset snapped to ${state.position.pixels}',
       );
-      for (final label in [
-        'ListGridLayout.quilted',
-        'ListGridLayout.staired',
-        'ListGridLayout.woven',
-      ]) {
+      for (final label in ['ListGridLayout.quilted', 'ListGridLayout.staired', 'ListGridLayout.woven']) {
         if (find.text(label).evaluate().isNotEmpty) {
           labels.putIfAbsent(label, () => state.position.pixels);
         }

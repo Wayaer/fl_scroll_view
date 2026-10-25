@@ -11,6 +11,13 @@ class StairedGridTile {
   final double aspectRatio;
 
   @override
+  bool operator ==(Object other) =>
+      other is StairedGridTile && other.crossAxisRatio == crossAxisRatio && other.aspectRatio == aspectRatio;
+
+  @override
+  int get hashCode => Object.hash(crossAxisRatio, aspectRatio);
+
+  @override
   String toString() => 'StairedGridTile($crossAxisRatio, $aspectRatio)';
 }
 

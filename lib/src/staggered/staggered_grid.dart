@@ -47,7 +47,7 @@ class StaggeredGridDelegateWithMaxCrossAxisExtent extends StaggeredGridDelegate 
 
   @override
   int getCrossAxisCount(double crossAxisExtent, double crossAxisSpacing) {
-    return (crossAxisExtent / (maxCrossAxisExtent + crossAxisSpacing)).ceil();
+    return math.max(1, (crossAxisExtent / (maxCrossAxisExtent + crossAxisSpacing)).ceil());
   }
 
   @override
@@ -432,17 +432,14 @@ class StaggeredGridTile extends ParentDataWidget<_StaggeredGridParentData> {
          child: child,
        );
 
-  const StaggeredGridTile.fit({
-    Key? key,
-    required int crossAxisCellCount,
-    required Widget child,
-  }) : this._(
-         key: key,
-         crossAxisCellCount: crossAxisCellCount,
-         mainAxisCellCount: null,
-         mainAxisExtent: null,
-         child: child,
-       );
+  const StaggeredGridTile.fit({Key? key, required int crossAxisCellCount, required Widget child})
+    : this._(
+        key: key,
+        crossAxisCellCount: crossAxisCellCount,
+        mainAxisCellCount: null,
+        mainAxisExtent: null,
+        child: child,
+      );
 
   final int crossAxisCellCount;
 

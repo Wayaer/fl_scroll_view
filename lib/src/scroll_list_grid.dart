@@ -15,6 +15,9 @@ import 'package:material_ui/material_ui.dart';
 /// - [NeverScrollableScrollPhysics]：禁止滚动
 /// - [BouncingScrollPhysics]：内容超一屏时有回弹
 /// - [ClampingScrollPhysics]：无回弹
+///
+/// 传入 [refreshConfig] 时，实际 physics 由 EasyRefresh 接管，
+/// [physics] 仅用于推导 [shrinkWrap] 与 [placeholderFill] 的默认值。
 class FlScrollListGrid extends FlRefreshScrollView {
   /// 自行组合多个 sliver，可额外加 [header] / [footer]。
   const FlScrollListGrid({
@@ -151,7 +154,11 @@ class FlScrollListGrid extends FlRefreshScrollView {
     /// [itemCount] 为 0 时的占位组件
     Widget? placeholder,
 
-    /// 为 true 时 [placeholder] 使用 [SliverFillRemaining] 铺满；未传时，非 [NeverScrollableScrollPhysics] 则为 true
+    /// 为 true 时 [placeholder] 使用 [SliverFillRemaining] 铺满可视区域。
+    ///
+    /// 未显式传入时：
+    /// - [shrinkWrap] 为 true：false（无界主轴下 SliverFillRemaining 会断言）；
+    /// - 否则：[physics] 为 [NeverScrollableScrollPhysics] 时 false，其余为 true
     bool? placeholderFill,
 
     /// [placeholderFill] 为 true 时，占位是否伸入 overscroll 区域，默认 false
@@ -165,7 +172,7 @@ class FlScrollListGrid extends FlRefreshScrollView {
   }) : sliver = [
          FlSliverListGrid.builder(
            placeholder: placeholder,
-           placeholderFill: _placeholderFill(placeholderFill, physics),
+           placeholderFill: _placeholderFill(placeholderFill, physics, shrinkWrap),
            placeholderFillOverscroll: placeholderFillOverscroll,
            addSemanticIndexes: addSemanticIndexes,
            addRepaintBoundaries: addRepaintBoundaries,
@@ -247,7 +254,11 @@ class FlScrollListGrid extends FlRefreshScrollView {
     /// [children] 为空时的占位组件
     Widget? placeholder,
 
-    /// 为 true 时 [placeholder] 使用 [SliverFillRemaining] 铺满；未传时，非 [NeverScrollableScrollPhysics] 则为 true
+    /// 为 true 时 [placeholder] 使用 [SliverFillRemaining] 铺满可视区域。
+    ///
+    /// 未显式传入时：
+    /// - [shrinkWrap] 为 true：false（无界主轴下 SliverFillRemaining 会断言）；
+    /// - 否则：[physics] 为 [NeverScrollableScrollPhysics] 时 false，其余为 true
     bool? placeholderFill,
 
     /// [placeholderFill] 为 true 时，占位是否伸入 overscroll 区域，默认 false
@@ -262,7 +273,7 @@ class FlScrollListGrid extends FlRefreshScrollView {
          FlSliverListGrid.count(
            semanticIndexCallback: semanticIndexCallback,
            placeholder: placeholder,
-           placeholderFill: _placeholderFill(placeholderFill, physics),
+           placeholderFill: _placeholderFill(placeholderFill, physics, shrinkWrap),
            placeholderFillOverscroll: placeholderFillOverscroll,
            addSemanticIndexes: addSemanticIndexes,
            addRepaintBoundaries: addRepaintBoundaries,
@@ -272,8 +283,9 @@ class FlScrollListGrid extends FlRefreshScrollView {
          ),
        ];
 
-  static bool _placeholderFill(bool? placeholderFill, ScrollPhysics? physics) {
+  static bool _placeholderFill(bool? placeholderFill, ScrollPhysics? physics, bool? shrinkWrap) {
     if (placeholderFill != null) return placeholderFill;
+    if (shrinkWrap == true) return false;
     return physics is! NeverScrollableScrollPhysics;
   }
 

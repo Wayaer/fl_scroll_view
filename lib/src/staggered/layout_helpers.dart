@@ -5,8 +5,8 @@ import 'package:flutter/foundation.dart' show precisionErrorTolerance;
 /// 用于 masonry、quilted 等按「当前最短」放置下一格的布局。
 int indexOfSmallest(List<num> values) {
   assert(values.isNotEmpty);
-  var index = 0;
-  for (var i = 1; i < values.length; i++) {
+  int index = 0;
+  for (int i = 1; i < values.length; i++) {
     if (values[i] < values[index]) index = i;
   }
   return index;

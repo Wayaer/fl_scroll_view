@@ -11,19 +11,12 @@ void main() {
           body: CustomScrollView(
             slivers: [
               FlSliverListGrid.builder(
-                layout: const ListGridLayout.masonry(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 6,
-                  crossAxisSpacing: 6,
-                ),
+                layout: const ListGridLayout.masonry(crossAxisCount: 2, mainAxisSpacing: 6, crossAxisSpacing: 6),
                 itemCount: 12,
                 itemBuilder: (_, i) => ColorEntry(i, colorAt(i), height: masonryHeight(i)),
               ),
               FlSliverListGrid.builder(
-                layout: const ListGridLayout.quilted(
-                  crossAxisCount: 4,
-                  pattern: quiltedPattern,
-                ),
+                layout: const ListGridLayout.quilted(crossAxisCount: 4, pattern: quiltedPattern),
                 itemCount: 8,
                 itemBuilder: (_, i) => ColorEntry(i + 20, colorAt(i + 20)),
               ),
@@ -35,12 +28,7 @@ void main() {
               FlSliverListGrid.builder(
                 layout: const ListGridLayout.list(),
                 itemCount: 40,
-                itemBuilder: (_, i) => ColorEntry(
-                  i + 50,
-                  colorAt(i + 50),
-                  height: 56,
-                  width: double.infinity,
-                ),
+                itemBuilder: (_, i) => ColorEntry(i + 50, colorAt(i + 50), height: 56, width: double.infinity),
               ),
             ],
           ),
@@ -52,7 +40,7 @@ void main() {
     final ScrollableState state = tester.state(find.byType(Scrollable));
     final max = state.position.maxScrollExtent;
 
-    for (var offset = 0.0; offset <= max; offset += 120) {
+    for (double offset = 0.0; offset <= max; offset += 120) {
       state.position.jumpTo(offset.clamp(0.0, state.position.maxScrollExtent));
       await tester.pump();
       expect(tester.takeException(), isNull);
@@ -63,7 +51,7 @@ void main() {
       );
     }
 
-    for (var offset = max; offset >= 0; offset -= 120) {
+    for (double offset = max; offset >= 0; offset -= 120) {
       state.position.jumpTo(offset.clamp(0.0, state.position.maxScrollExtent));
       await tester.pump();
       expect(tester.takeException(), isNull);

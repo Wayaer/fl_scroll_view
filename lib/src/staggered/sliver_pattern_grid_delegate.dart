@@ -1,19 +1,13 @@
 part of 'sliver_patterned_grids.dart';
 
-const _kZeroGeometry = SliverGridGeometry(
-  scrollOffset: 0,
-  crossAxisOffset: 0,
-  mainAxisExtent: 0,
-  crossAxisExtent: 0,
-);
+const _kZeroGeometry = SliverGridGeometry(scrollOffset: 0, crossAxisOffset: 0, mainAxisExtent: 0, crossAxisExtent: 0);
 
 /// 一组 pattern 周期内的格子几何：真实绘制区域 [tiles] + 占位包围盒 [bounds]。
 ///
 /// 仅供 staired / woven 内部使用，不从 package 导出。
 @immutable
 class PatternGridGeometries {
-  const PatternGridGeometries({required this.tiles, required this.bounds})
-    : assert(tiles.length == bounds.length);
+  const PatternGridGeometries({required this.tiles, required this.bounds}) : assert(tiles.length == bounds.length);
 
   final List<SliverGridGeometry> tiles;
 
@@ -71,15 +65,13 @@ abstract class _SliverPatternGridDelegate<T> extends SliverGridDelegate {
   final double? maxCrossAxisExtent;
 
   @protected
-  PatternGridGeometries getGeometries(
-    SliverConstraints constraints,
-    int crossAxisCount,
-  );
+  PatternGridGeometries getGeometries(SliverConstraints constraints, int crossAxisCount);
 
   @override
   SliverGridLayout getLayout(SliverConstraints constraints) {
     final crossAxisCount =
-        this.crossAxisCount ?? (constraints.crossAxisExtent / (maxCrossAxisExtent! + crossAxisSpacing)).ceil();
+        this.crossAxisCount ??
+        math.max(1, (constraints.crossAxisExtent / (maxCrossAxisExtent! + crossAxisSpacing)).ceil());
     final geometries = getGeometries(constraints, crossAxisCount);
     return _SliverPatternGridLayout(
       mainAxisSpacing: mainAxisSpacing,
@@ -92,9 +84,20 @@ abstract class _SliverPatternGridDelegate<T> extends SliverGridDelegate {
 
   @override
   bool shouldRelayout(_SliverPatternGridDelegate oldDelegate) {
-    return oldDelegate.pattern != pattern ||
+    return oldDelegate.crossAxisCount != crossAxisCount ||
+        oldDelegate.maxCrossAxisExtent != maxCrossAxisExtent ||
+        !samePattern(oldDelegate.pattern, pattern) ||
         oldDelegate.mainAxisSpacing != mainAxisSpacing ||
         oldDelegate.crossAxisSpacing != crossAxisSpacing;
+  }
+
+  bool samePattern(List<Object?> a, List<Object?> b) {
+    if (identical(a, b)) return true;
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
   }
 }
 
@@ -178,10 +181,7 @@ class _SliverPatternGridLayout extends SliverGridLayout {
     return 0;
   }
 
-  bool _isRectVisibleAtMainAxisOffset(
-    SliverGridGeometry rect,
-    double mainAxisOffset,
-  ) {
+  bool _isRectVisibleAtMainAxisOffset(SliverGridGeometry rect, double mainAxisOffset) {
     return rect.scrollOffset <= mainAxisOffset && rect.trailingScrollOffset >= (mainAxisOffset - mainAxisSpacing);
   }
 

@@ -58,15 +58,24 @@ class FlRefreshScrollView extends StatelessWidget {
   final ScrollBehavior? scrollBehavior;
 
   /// 滚动物理效果
+  ///
+  /// 传入 [refreshConfig] 时，实际 physics 由 EasyRefresh 接管；
+  /// 本参数仅用于推导 [shrinkWrap] 的默认值，不会直接传给 [CustomScrollView]。
   final ScrollPhysics? physics;
 
   /// 是否使用 PrimaryScrollController
   final bool? primary;
 
   /// 滚动控制器
+  ///
+  /// 开启 [refreshConfig] 时也会作为 EasyRefresh 的 scrollController；
+  /// 未提供时才使用 [FlEasyRefreshConfig.scrollController]。
   final ScrollController? controller;
 
-  /// 是否由内容决定自身尺寸；未传时，[physics] 为 [NeverScrollableScrollPhysics] 则为 true
+  /// 是否由内容决定自身尺寸。
+  ///
+  /// 未传时，[physics] 为 [NeverScrollableScrollPhysics] 则为 true；
+  /// 开启 [refreshConfig] 后 physics 由 EasyRefresh 接管，此时默认 false。
   final bool? shrinkWrap;
 
   /// 是否反向滚动
@@ -84,7 +93,8 @@ class FlRefreshScrollView extends StatelessWidget {
   /// 为 true 时移除滚动水波纹等滚动行为
   final bool noScrollBehavior;
 
-  /// 外边距（包在滚动视图外侧；[builder] 未设 itemCount 时列表主轴无限，不宜再用 SliverPadding 包 sliver）
+  /// 外边距（包在滚动视图外侧；[builder] 未设 itemCount 时列表主轴无限，
+  /// 不宜再用 SliverPadding 包 sliver）
   final EdgeInsetsGeometry? padding;
 
   /// 下拉刷新 / 上拉加载配置

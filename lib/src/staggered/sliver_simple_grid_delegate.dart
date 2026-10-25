@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/rendering.dart';
 
 abstract class SliverSimpleGridDelegate {
@@ -32,7 +34,7 @@ class SliverSimpleGridDelegateWithMaxCrossAxisExtent extends SliverSimpleGridDel
 
   @override
   int getCrossAxisCount(SliverConstraints constraints, double crossAxisSpacing) {
-    return (constraints.crossAxisExtent / (maxCrossAxisExtent + crossAxisSpacing)).ceil();
+    return math.max(1, (constraints.crossAxisExtent / (maxCrossAxisExtent + crossAxisSpacing)).ceil());
   }
 
   @override

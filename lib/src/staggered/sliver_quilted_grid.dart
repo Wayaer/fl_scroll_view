@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 
-import 'package:fl_scroll_view/src/staggered/layout_helpers.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
@@ -30,9 +29,18 @@ class SliverQuiltedGridDelegate extends SliverGridDelegate {
   }) : assert(crossAxisCount > 0),
        assert(mainAxisSpacing >= 0),
        assert(crossAxisSpacing >= 0),
-       assert(pattern.isNotEmpty),
-       pattern = List<QuiltedGridTile>.of(pattern),
+       pattern = _validatedPattern(pattern, crossAxisCount),
        _pattern = _toPattern(pattern, crossAxisCount, repeatPattern);
+
+  static List<QuiltedGridTile> _validatedPattern(List<QuiltedGridTile> pattern, int crossAxisCount) {
+    if (pattern.isEmpty) {
+      throw ArgumentError.value(pattern, 'pattern', 'pattern 不能为空');
+    }
+    if (pattern.any((QuiltedGridTile tile) => tile.crossAxisCount > crossAxisCount)) {
+      throw ArgumentError.value(pattern, 'pattern', 'QuiltedGridTile.crossAxisCount 不能超过 crossAxisCount');
+    }
+    return List<QuiltedGridTile>.of(pattern);
+  }
 
   final int crossAxisCount;
 
@@ -71,7 +79,7 @@ class SliverQuiltedGridDelegate extends SliverGridDelegate {
 
   static bool _samePattern(List<QuiltedGridTile> a, List<QuiltedGridTile> b) {
     if (a.length != b.length) return false;
-    for (var i = 0; i < a.length; i++) {
+    for (int i = 0; i < a.length; i++) {
       if (a[i].mainAxisCount != b[i].mainAxisCount || a[i].crossAxisCount != b[i].crossAxisCount) return false;
     }
     return true;
@@ -92,27 +100,38 @@ class SliverQuiltedGridDelegate extends SliverGridDelegate {
 
     final offsets = List<int>.generate(crossAxisCount, (index) => 0);
     void position(List<QuiltedGridTile> tiles, Map<int, int>? cellIndexes, int start) {
-      for (var i = 0; i < tiles.length; i++) {
+      for (int i = 0; i < tiles.length; i++) {
         final tile = tiles[i];
         final fullIndex = start + i;
-        final crossAxisIndex = indexOfSmallest(offsets);
+        final tileCrossAxisCount = tile.crossAxisCount;
+        final tileMainAxisCount = tile.mainAxisCount;
+
+        // 只在能完整放下当前 tile 的起始列中选择最矮的一列，
+        // 否则跨列 tile 落在最后一列时会越界。
+        final int lastStart = crossAxisCount - tileCrossAxisCount;
+        int crossAxisIndex = 0;
+        int smallestOffset = offsets[0];
+        for (int candidate = 1; candidate <= lastStart; candidate++) {
+          if (offsets[candidate] < smallestOffset) {
+            smallestOffset = offsets[candidate];
+            crossAxisIndex = candidate;
+          }
+        }
+
         final mainAxisIndex = offsets[crossAxisIndex];
         mainAxisIndexes[fullIndex] = mainAxisIndex;
         crossAxisIndexes[fullIndex] = crossAxisIndex;
-
-        final tileCrossAxisCount = tile.crossAxisCount;
-        final tileMainAxisCount = tile.mainAxisCount;
-        for (var j = 0; j < tileCrossAxisCount; j++) {
+        for (int j = 0; j < tileCrossAxisCount; j++) {
           offsets[crossAxisIndex + j] += tileMainAxisCount;
           if (cellIndexes != null) {
-            for (var k = 0; k < tileMainAxisCount; k++) {
+            for (int k = 0; k < tileMainAxisCount; k++) {
               final cellIndex = (crossAxisIndex + j) + (mainAxisIndex + k) * crossAxisCount;
               cellIndexes[cellIndex] = i;
             }
           }
         }
 
-        for (var j = 0; j < tileMainAxisCount; j++) {
+        for (int j = 0; j < tileMainAxisCount; j++) {
           final index = mainAxisIndex + j;
           if (minTileIndexes.length == index) {
             minTileIndexes.add(fullIndex);
@@ -131,9 +150,12 @@ class SliverQuiltedGridDelegate extends SliverGridDelegate {
     }
 
     position(source, indexes, 0);
-    final indexList = List<int>.filled(indexes.length, -1);
-    for (final index in indexes.keys) {
-      indexList[index] = indexes[index]!;
+    // 允许 tile 之间留下空格，indexList 需要覆盖到最大 cell 并补齐整行。
+    final int maxCellIndex = indexes.keys.reduce(math.max);
+    final int mainAxisCellCount = maxCellIndex ~/ crossAxisCount + 1;
+    final indexList = List<int>.filled(mainAxisCellCount * crossAxisCount, -1);
+    for (final MapEntry<int, int> entry in indexes.entries) {
+      indexList[entry.key] = entry.value;
     }
     final repeatedIndexes = repeatPattern.repeatedIndexes(indexList, crossAxisCount);
     final tiles = source.toList();
@@ -258,19 +280,13 @@ class _SliverQuiltedGridLayout extends SliverGridLayout {
 
     return SliverGridGeometry(
       scrollOffset: mainAxisIndex * mainAxisStride,
-      crossAxisOffset: _getOffsetFromStartInCrossAxis(
-        crossAxisIndex * crossAxisStride,
-        crossAxisExtent,
-      ),
+      crossAxisOffset: _getOffsetFromStartInCrossAxis(crossAxisIndex * crossAxisStride, crossAxisExtent),
       mainAxisExtent: tile.mainAxisCount * mainAxisStride - mainAxisSpacing,
       crossAxisExtent: crossAxisExtent,
     );
   }
 
-  double _getOffsetFromStartInCrossAxis(
-    double crossAxisStart,
-    double childCrossAxisExtent,
-  ) {
+  double _getOffsetFromStartInCrossAxis(double crossAxisStart, double childCrossAxisExtent) {
     if (reverseCrossAxis) return crossAxisExtent - crossAxisStart - childCrossAxisExtent;
     return crossAxisStart;
   }

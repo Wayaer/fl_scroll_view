@@ -2,12 +2,9 @@ part of 'sliver_patterned_grids.dart';
 
 @immutable
 class WovenGridTile {
-  const WovenGridTile(
-    this.aspectRatio, {
-    this.crossAxisRatio = 1,
-    this.alignment = AlignmentDirectional.center,
-  }) : assert(aspectRatio > 0),
-       assert(crossAxisRatio > 0 && crossAxisRatio <= 1);
+  const WovenGridTile(this.aspectRatio, {this.crossAxisRatio = 1, this.alignment = AlignmentDirectional.center})
+    : assert(aspectRatio > 0),
+      assert(crossAxisRatio > 0 && crossAxisRatio <= 1);
 
   final double aspectRatio;
 
@@ -16,8 +13,21 @@ class WovenGridTile {
   final AlignmentDirectional alignment;
 
   @override
-  String toString() =>
-      'WovenGridTile($aspectRatio${crossAxisRatio > 1 ? ', $crossAxisRatio' : ''}${alignment != AlignmentDirectional.center ? ', $alignment' : ''})';
+  bool operator ==(Object other) =>
+      other is WovenGridTile &&
+      other.aspectRatio == aspectRatio &&
+      other.crossAxisRatio == crossAxisRatio &&
+      other.alignment == alignment;
+
+  @override
+  int get hashCode => Object.hash(aspectRatio, crossAxisRatio, alignment);
+
+  @override
+  String toString() {
+    final String ratio = crossAxisRatio > 1 ? ', $crossAxisRatio' : '';
+    final String align = alignment != AlignmentDirectional.center ? ', $alignment' : '';
+    return 'WovenGridTile($aspectRatio$ratio$align)';
+  }
 }
 
 class SliverWovenGridDelegate extends _SliverPatternGridDelegate<WovenGridTile> {

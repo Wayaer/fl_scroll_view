@@ -101,10 +101,7 @@ class _RenderUniformTrack extends RenderBox
 
     while (child != null) {
       final size = layoutChild(child, childConstraints);
-      maxChildCrossAxisExtent = math.max(
-        maxChildCrossAxisExtent,
-        getChildCrossAxisExtent(size),
-      );
+      maxChildCrossAxisExtent = math.max(maxChildCrossAxisExtent, getChildCrossAxisExtent(size));
       child = childAfter(child);
     }
 
@@ -125,14 +122,8 @@ class _RenderUniformTrack extends RenderBox
     }
 
     final secondPassChildConstraints = _isHorizontal
-        ? BoxConstraints.tightFor(
-            width: childMainAxisExtent,
-            height: maxChildCrossAxisExtent,
-          )
-        : BoxConstraints.tightFor(
-            height: childMainAxisExtent,
-            width: maxChildCrossAxisExtent,
-          );
+        ? BoxConstraints.tightFor(width: childMainAxisExtent, height: maxChildCrossAxisExtent)
+        : BoxConstraints.tightFor(height: childMainAxisExtent, width: maxChildCrossAxisExtent);
 
     RenderBox? child = firstChild;
     final stride = childMainAxisExtent + spacing;
@@ -162,14 +153,10 @@ class _RenderUniformTrack extends RenderBox
 }
 
 class _UniformTrack extends MultiChildRenderObjectWidget {
-  const _UniformTrack({
-    required this.division,
-    this.spacing = 0,
-    required this.direction,
-    required super.children,
-  }) : assert(spacing >= 0),
-       assert(division > 0),
-       assert(children.length <= division);
+  const _UniformTrack({required this.division, this.spacing = 0, required this.direction, required super.children})
+    : assert(spacing >= 0),
+      assert(division > 0),
+      assert(children.length <= division);
 
   final double spacing;
   final int division;
@@ -218,9 +205,7 @@ class SliverAlignedGrid extends StatelessWidget {
          key: key,
          itemBuilder: itemBuilder,
          itemCount: itemCount,
-         gridDelegate: SliverSimpleGridDelegateWithFixedCrossAxisCount(
-           crossAxisCount: crossAxisCount,
-         ),
+         gridDelegate: SliverSimpleGridDelegateWithFixedCrossAxisCount(crossAxisCount: crossAxisCount),
          mainAxisSpacing: mainAxisSpacing,
          crossAxisSpacing: crossAxisSpacing,
          addAutomaticKeepAlives: addAutomaticKeepAlives,
@@ -244,9 +229,7 @@ class SliverAlignedGrid extends StatelessWidget {
          key: key,
          itemBuilder: itemBuilder,
          itemCount: itemCount,
-         gridDelegate: SliverSimpleGridDelegateWithMaxCrossAxisExtent(
-           maxCrossAxisExtent: maxCrossAxisExtent,
-         ),
+         gridDelegate: SliverSimpleGridDelegateWithMaxCrossAxisExtent(maxCrossAxisExtent: maxCrossAxisExtent),
          mainAxisSpacing: mainAxisSpacing,
          crossAxisSpacing: crossAxisSpacing,
          addAutomaticKeepAlives: addAutomaticKeepAlives,
@@ -278,12 +261,9 @@ class SliverAlignedGrid extends StatelessWidget {
     final localItemCount = itemCount;
     return SliverLayoutBuilder(
       builder: (context, constraints) {
-        final crossAxisCount = gridDelegate.getCrossAxisCount(
-          constraints,
-          crossAxisSpacing,
-        );
-        final listItemCount = localItemCount == null
-            ? null
+        final crossAxisCount = gridDelegate.getCrossAxisCount(constraints, crossAxisSpacing);
+        final listItemCount = localItemCount == null || localItemCount == 0
+            ? localItemCount
             : ((localItemCount + crossAxisCount - 1) ~/ crossAxisCount) * 2 - 1;
         return SliverList(
           delegate: SliverChildBuilderDelegate(
@@ -293,9 +273,8 @@ class SliverAlignedGrid extends StatelessWidget {
               }
 
               final startIndex = (index ~/ 2) * crossAxisCount;
-              final children = [
-                for (int i = 0; i < crossAxisCount; i++) _buildItem(context, startIndex + i, itemCount),
-              ].whereType<Widget>();
+              final children = [for (int i = 0; i < crossAxisCount; i++) _buildItem(context, startIndex + i, itemCount)]
+                  .whereType<Widget>();
 
               if (children.isEmpty) {
                 return null;
