@@ -27,7 +27,7 @@ class ShowcasePage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBarText('Showcase 综合页'),
-      body: FlRefreshScrollView(
+      body: FlRefreshableScrollView(
         padding: const EdgeInsets.all(10),
         refreshConfig: demoRefreshConfig(),
         slivers: [
@@ -70,7 +70,7 @@ class ShowcasePage extends StatelessWidget {
                       if (expanded) ...[
                         const SizedBox(height: 10),
                         Text(
-                          'pinned header + pinned box + 7 种 ListGridLayout + StaggeredGrid 同屏滚动',
+                          'pinned header + pinned box + 7 种 ListLayout + StaggeredGrid 同屏滚动',
                           style: TextStyle(color: Colors.white.withValues(alpha: 0.86), fontSize: 11.5),
                         ),
                       ],
@@ -103,46 +103,45 @@ class ShowcasePage extends StatelessWidget {
               ),
             ),
           ),
-          SectionTitle('ListGridLayout.list', subtitle: '线性列表 + separatorBuilder'),
-          FlSliverListGrid.builder(
-            layout: const ListGridLayout.list(),
+          SectionTitle('ListLayout.list', subtitle: '线性列表 + separatorBuilder'),
+          FlSliverListLayout.builder(
+            layout: ListLayout.list(separatorBuilder: (_, _) => const SizedBox(height: 6)),
             itemCount: listIdx.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 6),
             itemBuilder: (_, int i) {
               final int index = listIdx[i];
               return ColorEntry(index, colorAt(index), height: 52, width: double.infinity, label: 'list $index');
             },
           ),
-          SectionTitle('ListGridLayout.grid', subtitle: '3 列等分网格'),
-          FlSliverListGrid.builder(
-            layout: const ListGridLayout.grid(crossAxisCount: 3, mainAxisSpacing: 6, crossAxisSpacing: 6),
+          SectionTitle('ListLayout.gridCount', subtitle: '3 列等分网格'),
+          FlSliverListLayout.builder(
+            layout: const ListLayout.gridCount(crossAxisCount: 3, mainAxisSpacing: 6, crossAxisSpacing: 6),
             itemCount: gridIdx.length,
             itemBuilder: (_, int i) {
               final int index = gridIdx[i];
               return ColorEntry(index, colorAt(index), label: 'grid $index');
             },
           ),
-          SectionTitle('ListGridLayout.masonry', subtitle: '2 列瀑布流，高度自由'),
-          FlSliverListGrid.builder(
-            layout: const ListGridLayout.masonry(crossAxisCount: 2, mainAxisSpacing: 6, crossAxisSpacing: 6),
+          SectionTitle('ListLayout.masonryCount', subtitle: '2 列瀑布流，高度自由'),
+          FlSliverListLayout.builder(
+            layout: const ListLayout.masonryCount(crossAxisCount: 2, mainAxisSpacing: 6, crossAxisSpacing: 6),
             itemCount: masonryIdx.length,
             itemBuilder: (_, int i) {
               final int index = masonryIdx[i];
               return ColorEntry(index, colorAt(index), height: masonryHeight(index), label: 'masonry $index');
             },
           ),
-          SectionTitle('ListGridLayout.aligned', subtitle: '行对齐网格'),
-          FlSliverListGrid.builder(
-            layout: const ListGridLayout.aligned(crossAxisCount: 2, mainAxisSpacing: 6, crossAxisSpacing: 6),
+          SectionTitle('ListLayout.alignedCount', subtitle: '行对齐网格'),
+          FlSliverListLayout.builder(
+            layout: const ListLayout.alignedCount(crossAxisCount: 2, mainAxisSpacing: 6, crossAxisSpacing: 6),
             itemCount: alignedIdx.length,
             itemBuilder: (_, int i) {
               final int index = alignedIdx[i];
               return ColorEntry(index, colorAt(index), height: alignedHeight(index), label: 'aligned $index');
             },
           ),
-          SectionTitle('ListGridLayout.quilted', subtitle: '4 列拼布图案'),
-          FlSliverListGrid.builder(
-            layout: const ListGridLayout.quilted(
+          SectionTitle('ListLayout.quilted', subtitle: '4 列拼布图案'),
+          FlSliverListLayout.builder(
+            layout: const ListLayout.quilted(
               crossAxisCount: 4,
               pattern: quiltedPattern,
               mainAxisSpacing: 6,
@@ -154,18 +153,18 @@ class ShowcasePage extends StatelessWidget {
               return ColorEntry(index, colorAt(index), label: 'quilted $index');
             },
           ),
-          SectionTitle('ListGridLayout.staired', subtitle: '左右交替的阶梯图案'),
-          FlSliverListGrid.builder(
-            layout: const ListGridLayout.staired(pattern: stairedPattern, mainAxisSpacing: 6, crossAxisSpacing: 6),
+          SectionTitle('ListLayout.staired', subtitle: '左右交替的阶梯图案'),
+          FlSliverListLayout.builder(
+            layout: const ListLayout.staired(pattern: stairedPattern, mainAxisSpacing: 6, crossAxisSpacing: 6),
             itemCount: stairedIdx.length,
             itemBuilder: (_, int i) {
               final int index = stairedIdx[i];
               return ColorEntry(index, colorAt(index), label: 'staired $index');
             },
           ),
-          SectionTitle('ListGridLayout.woven', subtitle: '上下两排交错的编织图案'),
-          FlSliverListGrid.builder(
-            layout: const ListGridLayout.woven(
+          SectionTitle('ListLayout.wovenCount', subtitle: '上下两排交错的编织图案'),
+          FlSliverListLayout.builder(
+            layout: const ListLayout.wovenCount(
               pattern: wovenPattern,
               crossAxisCount: 2,
               mainAxisSpacing: 6,
@@ -194,8 +193,8 @@ class ShowcasePage extends StatelessWidget {
             ),
           ),
           SectionTitle('全量色卡', subtitle: '4 列网格 · 120 项'),
-          FlSliverListGrid.builder(
-            layout: const ListGridLayout.grid(
+          FlSliverListLayout.builder(
+            layout: const ListLayout.gridCount(
               crossAxisCount: 4,
               mainAxisSpacing: 4,
               crossAxisSpacing: 4,

@@ -19,22 +19,22 @@ void main() {
         greaterThanOrEqualTo(offset - 1.0),
         reason: 'jump $offset snapped to ${state.position.pixels}',
       );
-      for (final label in ['ListGridLayout.quilted', 'ListGridLayout.staired', 'ListGridLayout.woven']) {
+      for (final label in ['ListLayout.quilted', 'ListLayout.staired', 'ListLayout.wovenCount']) {
         if (find.text(label).evaluate().isNotEmpty) {
           labels.putIfAbsent(label, () => state.position.pixels);
         }
       }
     }
 
-    expect(labels.containsKey('ListGridLayout.staired'), isTrue, reason: 'labels=$labels');
-    expect(labels.containsKey('ListGridLayout.quilted'), isTrue);
+    expect(labels.containsKey('ListLayout.staired'), isTrue, reason: 'labels=$labels');
+    expect(labels.containsKey('ListLayout.quilted'), isTrue);
 
     // Re-enter staired and ensure we don't fall back to quilted-only.
-    final stairedAt = labels['ListGridLayout.staired']!;
+    final stairedAt = labels['ListLayout.staired']!;
     state.position.jumpTo(stairedAt);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('ListGridLayout.staired'), findsOneWidget);
+    expect(find.text('ListLayout.staired'), findsOneWidget);
     expect(state.position.pixels, closeTo(stairedAt, 50));
   });
 }

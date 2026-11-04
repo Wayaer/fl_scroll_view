@@ -195,7 +195,7 @@ class _StaggeredLabPageState extends State<StaggeredLabPage> {
   }
 
   Widget _buildSliver() {
-    return FlRefreshScrollView(
+    return FlRefreshableScrollView(
       padding: const EdgeInsets.all(12),
       refreshConfig: demoRefreshConfig(delay: const Duration(milliseconds: 700)),
       slivers: [
@@ -203,7 +203,7 @@ class _StaggeredLabPageState extends State<StaggeredLabPage> {
           title: 'SliverMasonryGrid · SliverAlignedGrid',
           message:
               '两种 sliver 可以直接与其他 sliver 混排，'
-              '并和 FlRefreshScrollView 的下拉刷新组合。',
+              '并和 FlRefreshableScrollView 的下拉刷新组合。',
           tags: ['crossAxisCount: $_columns', 'spacing: ${_spacing.toStringAsFixed(0)}'],
         ),
         SectionTitle('SliverMasonryGrid.count', subtitle: '瀑布流 sliver，子项高度自由'),

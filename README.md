@@ -8,7 +8,7 @@
 
 ## 综合示例
 
-一个 `FlRefreshScrollView` 内串联常用 sliver 与多种 `ListGridLayout`：
+一个 `FlRefreshableScrollView` 内串联常用 sliver 与多种 `ListLayout`：
 
 ```dart
 import 'package:fl_scroll_view/fl_scroll_view.dart';
@@ -39,7 +39,7 @@ class ShowcasePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('fl_scroll_view')),
-      body: FlRefreshScrollView(
+      body: FlRefreshableScrollView(
         padding: const EdgeInsets.all(10),
         refreshConfig: FlEasyRefreshConfig(
           onRefresh: (_) async {
@@ -71,15 +71,14 @@ class ShowcasePage extends StatelessWidget {
             ),
           ),
           // list
-          FlSliverListGrid.builder(
-            layout: const ListGridLayout.list(),
+          FlSliverListLayout.builder(
+            layout: ListLayout.list(separatorBuilder: (_, __) => const SizedBox(height: 6)),
             itemCount: 8,
-            separatorBuilder: (_, __) => const SizedBox(height: 6),
             itemBuilder: (_, i) => _Tile(i, height: 56),
           ),
           // grid
-          FlSliverListGrid.builder(
-            layout: const ListGridLayout.grid(
+          FlSliverListLayout.builder(
+            layout: const ListLayout.gridCount(
               crossAxisCount: 3,
               mainAxisSpacing: 6,
               crossAxisSpacing: 6,
@@ -88,8 +87,8 @@ class ShowcasePage extends StatelessWidget {
             itemBuilder: (_, i) => _Tile(i + 8),
           ),
           // masonry
-          FlSliverListGrid.builder(
-            layout: const ListGridLayout.masonry(
+          FlSliverListLayout.builder(
+            layout: const ListLayout.masonryCount(
               crossAxisCount: 2,
               mainAxisSpacing: 6,
               crossAxisSpacing: 6,
@@ -98,8 +97,8 @@ class ShowcasePage extends StatelessWidget {
             itemBuilder: (_, i) => _Tile(i + 17, height: 60 + (i % 5) * 24),
           ),
           // aligned
-          FlSliverListGrid.builder(
-            layout: const ListGridLayout.aligned(
+          FlSliverListLayout.builder(
+            layout: const ListLayout.alignedCount(
               crossAxisCount: 2,
               mainAxisSpacing: 6,
               crossAxisSpacing: 6,
@@ -108,8 +107,8 @@ class ShowcasePage extends StatelessWidget {
             itemBuilder: (_, i) => _Tile(i + 27, height: i.isEven ? 100 : 48),
           ),
           // quilted
-          FlSliverListGrid.builder(
-            layout: const ListGridLayout.quilted(
+          FlSliverListLayout.builder(
+            layout: const ListLayout.quilted(
               crossAxisCount: 4,
               pattern: quiltedPattern,
               mainAxisSpacing: 6,
@@ -119,8 +118,8 @@ class ShowcasePage extends StatelessWidget {
             itemBuilder: (_, i) => _Tile(i + 35),
           ),
           // staired
-          FlSliverListGrid.builder(
-            layout: const ListGridLayout.staired(
+          FlSliverListLayout.builder(
+            layout: const ListLayout.staired(
               pattern: stairedPattern,
               mainAxisSpacing: 6,
               crossAxisSpacing: 6,
@@ -129,8 +128,8 @@ class ShowcasePage extends StatelessWidget {
             itemBuilder: (_, i) => _Tile(i + 43),
           ),
           // woven
-          FlSliverListGrid.builder(
-            layout: const ListGridLayout.woven(
+          FlSliverListLayout.builder(
+            layout: const ListLayout.wovenCount(
               pattern: wovenPattern,
               crossAxisCount: 2,
               mainAxisSpacing: 6,
@@ -180,4 +179,4 @@ class _Tile extends StatelessWidget {
 }
 ```
 
-单独页面也可用 `FlScrollListGrid.builder` / `.count`，通过 `layout: ListGridLayout.*(...)` 切换样式。
+单独页面也可用 `FlScrollListLayout.builder` / `.count`，通过 `layout: ListLayout.*(...)` 切换样式。

@@ -9,81 +9,77 @@ import 'package:fl_scroll_view/src/staggered/sliver_simple_grid_delegate.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
-/// [FlSliverListGrid] / [FlScrollListGrid] 的布局配置（密封类）。
+/// [FlSliverListLayout] / [FlScrollListLayout] 的布局配置（密封类）。
 ///
-/// 每种样式只暴露自己需要的参数，避免在 Widget 构造函数上堆砌无关字段。
-/// 数据相关参数（`itemBuilder` / `itemCount` / `separatorBuilder` / placeholder 等）
-/// 仍写在 [FlSliverListGrid] / [FlScrollListGrid] 上。
+/// 一种样式对应一个工厂 + 一个具体类型，每种样式只暴露自己需要的参数：
 ///
-/// 常用写法：
+/// 列表类：
+/// - [ListLayout.list] — 线性列表，可选 [ListPlainLayout.separatorBuilder]
+/// - [ListLayout.fixed] — 固定主轴长度
+/// - [ListLayout.prototype] — 用原型推断主轴长度
+///
+/// 等分网格（[SliverGrid]）：
+/// - [ListLayout.gridCount] — 固定列数
+/// - [ListLayout.gridExtent] — 按最大交叉轴宽度自适应列数
+///
+/// 瀑布流（[SliverMasonryGrid]）：
+/// - [ListLayout.masonryCount] — 固定列数
+/// - [ListLayout.masonryExtent] — 按最大交叉轴宽度自适应列数
+///
+/// 行对齐（[SliverAlignedGrid]）：
+/// - [ListLayout.alignedCount] — 固定列数
+/// - [ListLayout.alignedExtent] — 按最大交叉轴宽度自适应列数
+///
+/// 图案网格：
+/// - [ListLayout.quilted] — 拼布图案（[SliverQuiltedGridDelegate]）
+/// - [ListLayout.staired] — 阶梯图案（[SliverStairedGridDelegate]）
+/// - [ListLayout.wovenCount] — 编织图案，固定列数
+/// - [ListLayout.wovenExtent] — 编织图案，按最大交叉轴宽度自适应列数
 ///
 /// ```dart
-/// // 列表
-/// FlSliverListGrid.builder(
-///   layout: const ListGridLayout.list(),
+/// // 线性列表
+/// FlSliverListLayout.builder(
+///   layout: const ListLayout.list(),
 ///   itemCount: 20,
 ///   itemBuilder: (_, i) => Text('$i'),
 /// );
 ///
-/// // 固定列数网格
-/// FlSliverListGrid.builder(
-///   layout: const ListGridLayout.grid(crossAxisCount: 3, mainAxisSpacing: 8),
+/// // 带分隔符
+/// FlSliverListLayout.builder(
+///   layout: ListLayout.list(separatorBuilder: (_, i) => const Divider()),
 ///   itemCount: 20,
-///   itemBuilder: (_, i) => Tile(i),
+///   itemBuilder: (_, i) => Text('$i'),
 /// );
 ///
-/// // 拼布（pattern 必传）
-/// FlSliverListGrid.builder(
-///   layout: const ListGridLayout.quilted(
-///     crossAxisCount: 4,
-///     pattern: [
-///       QuiltedGridTile(2, 2),
-///       QuiltedGridTile(1, 1),
-///       QuiltedGridTile(1, 1),
-///       QuiltedGridTile(1, 2),
-///     ],
-///   ),
+/// // 固定 3 列等分网格
+/// FlSliverListLayout.builder(
+///   layout: const ListLayout.gridCount(crossAxisCount: 3, mainAxisSpacing: 8),
 ///   itemCount: 20,
 ///   itemBuilder: (_, i) => Tile(i),
 /// );
 /// ```
-///
-/// 可用工厂：
-/// - [ListGridLayout.list] — 线性列表
-/// - [ListGridLayout.grid] — 官方等分网格
-/// - [ListGridLayout.masonry] — 瀑布流
-/// - [ListGridLayout.aligned] — 按行对齐的不等高网格
-/// - [ListGridLayout.quilted] — 拼布图案网格
-/// - [ListGridLayout.staired] — 阶梯图案网格
-/// - [ListGridLayout.woven] — 编织图案网格
-sealed class ListGridLayout {
-  const ListGridLayout();
+sealed class ListLayout {
+  const ListLayout();
 
-  /// 线性列表。
+  /// 线性列表，对应 [SliverList]。
   ///
-  /// 对应 [SliverList]；若设置 [itemExtent] 则为 [SliverFixedExtentList]，
-  /// 若设置 [prototypeItem] 则为 [SliverPrototypeExtentList]（[itemExtent] 优先）。
-  ///
-  /// [FlSliverListGrid.builder] 的 `separatorBuilder` 仅在本布局下生效。
-  const factory ListGridLayout.list({
-    /// 固定主轴长度（像素）
-    double? itemExtent,
+  /// 传入 [separatorBuilder] 时行为对齐 [ListView.separated]：
+  /// 分隔符只出现在相邻子项之间（首尾无多余分隔符），
+  /// 实际 child 数为 `max(0, itemCount * 2 - 1)`。
+  const factory ListLayout.list({IndexedWidgetBuilder? separatorBuilder}) = ListPlainLayout;
 
-    /// 用原型子项推断主轴长度；[itemExtent] 非空时忽略
-    Widget? prototypeItem,
-  }) = ListGridListLayout;
+  /// 固定主轴长度，对应 [SliverFixedExtentList]。
+  const factory ListLayout.fixed({required double itemExtent}) = ListFixedLayout;
 
-  /// 官方等分网格，对应 [SliverGrid]。
+  /// 用原型子项推断主轴长度，对应 [SliverPrototypeExtentList]。
+  const factory ListLayout.prototype({required Widget prototypeItem}) = ListPrototypeLayout;
+
+  /// 官方等分网格，固定列数，对应 [SliverGridDelegateWithFixedCrossAxisCount]。
   ///
-  /// - 未设 [maxCrossAxisExtent] 时按 [crossAxisCount] 分列
-  /// - 设置了 [maxCrossAxisExtent] 时按最大交叉轴宽度自适应列数（优先）
-  /// - [mainAxisExtent] 非空时固定子项主轴长度，否则用 [childAspectRatio]
-  const factory ListGridLayout.grid({
-    /// 固定列数；未设置 [maxCrossAxisExtent] 时使用，默认 1
+  /// 若 [mainAxisExtent] 非空则固定子项主轴长度，否则用 [childAspectRatio]。
+  const factory ListLayout.gridCount({
+    /// 固定列数
     int crossAxisCount,
-
-    /// 交叉轴最大宽度，据此自适应列数；设置后优先于 [crossAxisCount]
-    double? maxCrossAxisExtent,
 
     /// 主轴方向间距
     double mainAxisSpacing,
@@ -91,54 +87,88 @@ sealed class ListGridLayout {
     /// 交叉轴方向间距
     double crossAxisSpacing,
 
-    /// 子项宽高比（宽 / 高），[mainAxisExtent] 为空时生效，默认 1
+    /// 子项宽高比（宽 / 高），[mainAxisExtent] 为空时生效
     double childAspectRatio,
 
     /// 子项主轴长度；非空时优先于 [childAspectRatio]
     double? mainAxisExtent,
-  }) = ListGridGridLayout;
+  }) = ListGridCountLayout;
 
-  /// 瀑布流，对应 [SliverMasonryGrid]。
-  ///
-  /// 各列独立堆叠，子项高度可不同。列数规则同 [ListGridLayout.grid]：
-  /// [maxCrossAxisExtent] 优先，否则用 [crossAxisCount]。
-  const factory ListGridLayout.masonry({
-    /// 固定列数；未设置 [maxCrossAxisExtent] 时使用，默认 1
-    int crossAxisCount,
-
-    /// 交叉轴最大宽度，据此自适应列数；设置后优先于 [crossAxisCount]
-    double? maxCrossAxisExtent,
+  /// 官方等分网格，按交叉轴最大宽度自适应列数，
+  /// 对应 [SliverGridDelegateWithMaxCrossAxisExtent]。
+  const factory ListLayout.gridExtent({
+    /// 交叉轴最大宽度
+    required double maxCrossAxisExtent,
 
     /// 主轴方向间距
     double mainAxisSpacing,
 
     /// 交叉轴方向间距
     double crossAxisSpacing,
-  }) = ListGridMasonryLayout;
 
-  /// 按行对齐的不等高网格，对应 [SliverAlignedGrid]。
+    /// 子项宽高比（宽 / 高），[mainAxisExtent] 为空时生效
+    double childAspectRatio,
+
+    /// 子项主轴长度；非空时优先于 [childAspectRatio]
+    double? mainAxisExtent,
+  }) = ListGridExtentLayout;
+
+  /// 瀑布流，固定列数，对应 [SliverMasonryGrid]。
   ///
-  /// 同一行取最高子项的高度作为行高，适合卡片高度不一但希望行对齐的场景。
-  /// 列数规则同 [ListGridLayout.grid]。
-  const factory ListGridLayout.aligned({
-    /// 固定列数；未设置 [maxCrossAxisExtent] 时使用，默认 1
+  /// 各列独立堆叠，子项高度可不同。
+  const factory ListLayout.masonryCount({
+    /// 固定列数
     int crossAxisCount,
-
-    /// 交叉轴最大宽度，据此自适应列数；设置后优先于 [crossAxisCount]
-    double? maxCrossAxisExtent,
 
     /// 主轴方向间距
     double mainAxisSpacing,
 
     /// 交叉轴方向间距
     double crossAxisSpacing,
-  }) = ListGridAlignedLayout;
+  }) = ListMasonryCountLayout;
+
+  /// 瀑布流，按交叉轴最大宽度自适应列数。
+  const factory ListLayout.masonryExtent({
+    /// 交叉轴最大宽度
+    required double maxCrossAxisExtent,
+
+    /// 主轴方向间距
+    double mainAxisSpacing,
+
+    /// 交叉轴方向间距
+    double crossAxisSpacing,
+  }) = ListMasonryExtentLayout;
+
+  /// 按行对齐的不等高网格，固定列数，对应 [SliverAlignedGrid]。
+  ///
+  /// 同一行取最高子项的高度作为行高。
+  const factory ListLayout.alignedCount({
+    /// 固定列数
+    int crossAxisCount,
+
+    /// 主轴方向间距
+    double mainAxisSpacing,
+
+    /// 交叉轴方向间距
+    double crossAxisSpacing,
+  }) = ListAlignedCountLayout;
+
+  /// 按行对齐的不等高网格，按交叉轴最大宽度自适应列数。
+  const factory ListLayout.alignedExtent({
+    /// 交叉轴最大宽度
+    required double maxCrossAxisExtent,
+
+    /// 主轴方向间距
+    double mainAxisSpacing,
+
+    /// 交叉轴方向间距
+    double crossAxisSpacing,
+  }) = ListAlignedExtentLayout;
 
   /// 拼布图案网格，对应 [SliverQuiltedGridDelegate]。
   ///
-  /// [pattern] 必传，描述每个 tile 占用的交叉轴 / 主轴 cell 数。
-  /// 仅使用 [crossAxisCount]，不使用 `maxCrossAxisExtent`。
-  const factory ListGridLayout.quilted({
+  /// [pattern] 描述每个 tile 占用的交叉轴 / 主轴 cell 数，循环排布。
+  const factory ListLayout.quilted({
     /// 交叉轴总 cell 数（图案坐标系）
     required int crossAxisCount,
 
@@ -153,12 +183,12 @@ sealed class ListGridLayout {
 
     /// 交叉轴方向间距
     double crossAxisSpacing,
-  }) = ListGridQuiltedLayout;
+  }) = ListQuiltedLayout;
 
   /// 阶梯图案网格，对应 [SliverStairedGridDelegate]。
   ///
-  /// [pattern] 必传；列数由图案自身的交叉轴比例决定，无需 `crossAxisCount`。
-  const factory ListGridLayout.staired({
+  /// 列数由图案自身的交叉轴比例决定。
+  const factory ListLayout.staired({
     /// 阶梯图案
     required List<StairedGridTile> pattern,
 
@@ -173,21 +203,15 @@ sealed class ListGridLayout {
 
     /// 是否从交叉轴反向开始排布
     bool startCrossAxisDirectionReversed,
-  }) = ListGridStairedLayout;
+  }) = ListStairedLayout;
 
-  /// 编织图案网格，对应 [SliverWovenGridDelegate]。
-  ///
-  /// [pattern] 必传。列数规则：
-  /// [maxCrossAxisExtent] 优先（extent 模式），否则用 [crossAxisCount]（count 模式）。
-  const factory ListGridLayout.woven({
+  /// 编织图案网格，固定列数，对应 [SliverWovenGridDelegate.count]。
+  const factory ListLayout.wovenCount({
     /// 编织图案
     required List<WovenGridTile> pattern,
 
-    /// 固定列数；未设置 [maxCrossAxisExtent] 时使用，默认 1
+    /// 固定列数
     int crossAxisCount,
-
-    /// 交叉轴最大宽度；设置后走 extent 模式，优先于 [crossAxisCount]
-    double? maxCrossAxisExtent,
 
     /// 主轴方向间距
     double mainAxisSpacing,
@@ -197,47 +221,94 @@ sealed class ListGridLayout {
 
     /// 每个 tile 主轴方向底部额外空间
     double tileBottomSpace,
-  }) = ListGridWovenLayout;
+  }) = ListWovenCountLayout;
+
+  /// 编织图案网格，按交叉轴最大宽度自适应列数，
+  /// 对应 [SliverWovenGridDelegate.extent]。
+  const factory ListLayout.wovenExtent({
+    /// 编织图案
+    required List<WovenGridTile> pattern,
+
+    /// 交叉轴最大宽度
+    required double maxCrossAxisExtent,
+
+    /// 主轴方向间距
+    double mainAxisSpacing,
+
+    /// 交叉轴方向间距
+    double crossAxisSpacing,
+
+    /// 每个 tile 主轴方向底部额外空间
+    double tileBottomSpace,
+  }) = ListWovenExtentLayout;
 }
 
-/// [ListGridLayout.list] 的具体类型，可用于 `switch (layout)` 分支。
-final class ListGridListLayout extends ListGridLayout {
-  /// 创建列表布局；通常通过 [ListGridLayout.list] 构造。
-  const ListGridListLayout({this.itemExtent, this.prototypeItem});
-
-  /// 固定主轴长度，使用 [SliverFixedExtentList]；优先于 [prototypeItem]
-  final double? itemExtent;
-
-  /// 原型子项，使用 [SliverPrototypeExtentList]；[itemExtent] 优先
-  final Widget? prototypeItem;
-
-  @override
-  String toString() => 'ListGridLayout.list';
-}
-
-/// [ListGridLayout.grid] 的具体类型，可用于 `switch (layout)` 分支。
-final class ListGridGridLayout extends ListGridLayout {
-  /// 创建官方网格布局；通常通过 [ListGridLayout.grid] 构造。
-  const ListGridGridLayout({
-    this.crossAxisCount = 1,
-    this.maxCrossAxisExtent,
-    this.mainAxisSpacing = 0,
-    this.crossAxisSpacing = 0,
-    this.childAspectRatio = 1,
-    this.mainAxisExtent,
-  });
-
-  /// 固定列数；未设置 [maxCrossAxisExtent] 时使用
-  final int crossAxisCount;
-
-  /// 交叉轴最大宽度，据此自适应列数；设置后优先于 [crossAxisCount]
-  final double? maxCrossAxisExtent;
+/// 带 [mainAxisSpacing] / [crossAxisSpacing] 的布局基类。
+///
+/// 除列表类与图案类以外的网格族都继承此基类，避免重复声明间距字段。
+abstract class _SpacingLayout extends ListLayout {
+  const _SpacingLayout({this.mainAxisSpacing = 0, this.crossAxisSpacing = 0});
 
   /// 主轴方向间距
   final double mainAxisSpacing;
 
   /// 交叉轴方向间距
   final double crossAxisSpacing;
+}
+
+/// [ListLayout.list] 的具体类型，可用于 `switch (layout)` 分支。
+final class ListPlainLayout extends ListLayout {
+  /// 创建线性列表布局；通常通过 [ListLayout.list] 构造。
+  const ListPlainLayout({this.separatorBuilder});
+
+  /// 分隔组件构建器，用法对齐 [ListView.separated]。
+  ///
+  /// - 分隔符只插在子项之间：第 0 个在 item 0 之后，最后一个在末项之前
+  /// - [index] 范围为 `0 .. itemCount - 2`
+  /// - 必须同时提供 `itemCount`
+  final IndexedWidgetBuilder? separatorBuilder;
+
+  @override
+  String toString() => 'ListLayout.list';
+}
+
+/// [ListLayout.fixed] 的具体类型，可用于 `switch (layout)` 分支。
+final class ListFixedLayout extends ListLayout {
+  /// 创建固定主轴长度布局；通常通过 [ListLayout.fixed] 构造。
+  const ListFixedLayout({required this.itemExtent});
+
+  /// 固定主轴长度
+  final double itemExtent;
+
+  @override
+  String toString() => 'ListLayout.fixed';
+}
+
+/// [ListLayout.prototype] 的具体类型，可用于 `switch (layout)` 分支。
+final class ListPrototypeLayout extends ListLayout {
+  /// 创建原型主轴长度布局；通常通过 [ListLayout.prototype] 构造。
+  const ListPrototypeLayout({required this.prototypeItem});
+
+  /// 原型子项，用其主轴长度作为所有子项的主轴长度
+  final Widget prototypeItem;
+
+  @override
+  String toString() => 'ListLayout.prototype';
+}
+
+/// [ListLayout.gridCount] 的具体类型，可用于 `switch (layout)` 分支。
+final class ListGridCountLayout extends _SpacingLayout {
+  /// 创建固定列数等分网格；通常通过 [ListLayout.gridCount] 构造。
+  const ListGridCountLayout({
+    this.crossAxisCount = 1,
+    super.mainAxisSpacing,
+    super.crossAxisSpacing,
+    this.childAspectRatio = 1,
+    this.mainAxisExtent,
+  });
+
+  /// 固定列数
+  final int crossAxisCount;
 
   /// 子项宽高比（宽 / 高）；[mainAxisExtent] 为空时生效
   final double childAspectRatio;
@@ -246,70 +317,98 @@ final class ListGridGridLayout extends ListGridLayout {
   final double? mainAxisExtent;
 
   @override
-  String toString() => 'ListGridLayout.grid';
+  String toString() => 'ListLayout.gridCount';
 }
 
-/// [ListGridLayout.masonry] 的具体类型，可用于 `switch (layout)` 分支。
-final class ListGridMasonryLayout extends ListGridLayout {
-  /// 创建瀑布流布局；通常通过 [ListGridLayout.masonry] 构造。
-  const ListGridMasonryLayout({
-    this.crossAxisCount = 1,
-    this.maxCrossAxisExtent,
-    this.mainAxisSpacing = 0,
-    this.crossAxisSpacing = 0,
+/// [ListLayout.gridExtent] 的具体类型，可用于 `switch (layout)` 分支。
+final class ListGridExtentLayout extends _SpacingLayout {
+  /// 创建自适应列数等分网格；通常通过 [ListLayout.gridExtent] 构造。
+  const ListGridExtentLayout({
+    required this.maxCrossAxisExtent,
+    super.mainAxisSpacing,
+    super.crossAxisSpacing,
+    this.childAspectRatio = 1,
+    this.mainAxisExtent,
   });
 
-  /// 固定列数；未设置 [maxCrossAxisExtent] 时使用
-  final int crossAxisCount;
+  /// 交叉轴最大宽度
+  final double maxCrossAxisExtent;
 
-  /// 交叉轴最大宽度，据此自适应列数；设置后优先于 [crossAxisCount]
-  final double? maxCrossAxisExtent;
+  /// 子项宽高比（宽 / 高）；[mainAxisExtent] 为空时生效
+  final double childAspectRatio;
 
-  /// 主轴方向间距
-  final double mainAxisSpacing;
-
-  /// 交叉轴方向间距
-  final double crossAxisSpacing;
+  /// 子项主轴长度；非空时优先于 [childAspectRatio]
+  final double? mainAxisExtent;
 
   @override
-  String toString() => 'ListGridLayout.masonry';
+  String toString() => 'ListLayout.gridExtent';
 }
 
-/// [ListGridLayout.aligned] 的具体类型，可用于 `switch (layout)` 分支。
-final class ListGridAlignedLayout extends ListGridLayout {
-  /// 创建按行对齐布局；通常通过 [ListGridLayout.aligned] 构造。
-  const ListGridAlignedLayout({
-    this.crossAxisCount = 1,
-    this.maxCrossAxisExtent,
-    this.mainAxisSpacing = 0,
-    this.crossAxisSpacing = 0,
+/// [ListLayout.masonryCount] 的具体类型，可用于 `switch (layout)` 分支。
+final class ListMasonryCountLayout extends _SpacingLayout {
+  /// 创建固定列数瀑布流；通常通过 [ListLayout.masonryCount] 构造。
+  const ListMasonryCountLayout({this.crossAxisCount = 1, super.mainAxisSpacing, super.crossAxisSpacing});
+
+  /// 固定列数
+  final int crossAxisCount;
+
+  @override
+  String toString() => 'ListLayout.masonryCount';
+}
+
+/// [ListLayout.masonryExtent] 的具体类型，可用于 `switch (layout)` 分支。
+final class ListMasonryExtentLayout extends _SpacingLayout {
+  /// 创建自适应列数瀑布流；通常通过 [ListLayout.masonryExtent] 构造。
+  const ListMasonryExtentLayout({
+    required this.maxCrossAxisExtent,
+    super.mainAxisSpacing,
+    super.crossAxisSpacing,
   });
 
-  /// 固定列数；未设置 [maxCrossAxisExtent] 时使用
-  final int crossAxisCount;
-
-  /// 交叉轴最大宽度，据此自适应列数；设置后优先于 [crossAxisCount]
-  final double? maxCrossAxisExtent;
-
-  /// 主轴方向间距
-  final double mainAxisSpacing;
-
-  /// 交叉轴方向间距
-  final double crossAxisSpacing;
+  /// 交叉轴最大宽度
+  final double maxCrossAxisExtent;
 
   @override
-  String toString() => 'ListGridLayout.aligned';
+  String toString() => 'ListLayout.masonryExtent';
 }
 
-/// [ListGridLayout.quilted] 的具体类型，可用于 `switch (layout)` 分支。
-final class ListGridQuiltedLayout extends ListGridLayout {
-  /// 创建拼布布局；通常通过 [ListGridLayout.quilted] 构造。
-  const ListGridQuiltedLayout({
+/// [ListLayout.alignedCount] 的具体类型，可用于 `switch (layout)` 分支。
+final class ListAlignedCountLayout extends _SpacingLayout {
+  /// 创建固定列数行对齐布局；通常通过 [ListLayout.alignedCount] 构造。
+  const ListAlignedCountLayout({this.crossAxisCount = 1, super.mainAxisSpacing, super.crossAxisSpacing});
+
+  /// 固定列数
+  final int crossAxisCount;
+
+  @override
+  String toString() => 'ListLayout.alignedCount';
+}
+
+/// [ListLayout.alignedExtent] 的具体类型，可用于 `switch (layout)` 分支。
+final class ListAlignedExtentLayout extends _SpacingLayout {
+  /// 创建自适应列数行对齐布局；通常通过 [ListLayout.alignedExtent] 构造。
+  const ListAlignedExtentLayout({
+    required this.maxCrossAxisExtent,
+    super.mainAxisSpacing,
+    super.crossAxisSpacing,
+  });
+
+  /// 交叉轴最大宽度
+  final double maxCrossAxisExtent;
+
+  @override
+  String toString() => 'ListLayout.alignedExtent';
+}
+
+/// [ListLayout.quilted] 的具体类型，可用于 `switch (layout)` 分支。
+final class ListQuiltedLayout extends _SpacingLayout {
+  /// 创建拼布布局；通常通过 [ListLayout.quilted] 构造。
+  const ListQuiltedLayout({
     required this.crossAxisCount,
     required this.pattern,
     this.repeatPattern = QuiltedGridRepeatPattern.same,
-    this.mainAxisSpacing = 0,
-    this.crossAxisSpacing = 0,
+    super.mainAxisSpacing,
+    super.crossAxisSpacing,
   });
 
   /// 交叉轴总 cell 数（图案坐标系）
@@ -321,35 +420,23 @@ final class ListGridQuiltedLayout extends ListGridLayout {
   /// 图案重复方式
   final QuiltedGridRepeatPattern repeatPattern;
 
-  /// 主轴方向间距
-  final double mainAxisSpacing;
-
-  /// 交叉轴方向间距
-  final double crossAxisSpacing;
-
   @override
-  String toString() => 'ListGridLayout.quilted';
+  String toString() => 'ListLayout.quilted';
 }
 
-/// [ListGridLayout.staired] 的具体类型，可用于 `switch (layout)` 分支。
-final class ListGridStairedLayout extends ListGridLayout {
-  /// 创建阶梯布局；通常通过 [ListGridLayout.staired] 构造。
-  const ListGridStairedLayout({
+/// [ListLayout.staired] 的具体类型，可用于 `switch (layout)` 分支。
+final class ListStairedLayout extends _SpacingLayout {
+  /// 创建阶梯布局；通常通过 [ListLayout.staired] 构造。
+  const ListStairedLayout({
     required this.pattern,
-    this.mainAxisSpacing = 0,
-    this.crossAxisSpacing = 0,
+    super.mainAxisSpacing,
+    super.crossAxisSpacing,
     this.tileBottomSpace = 0,
     this.startCrossAxisDirectionReversed = false,
   });
 
   /// 阶梯图案
   final List<StairedGridTile> pattern;
-
-  /// 主轴方向间距
-  final double mainAxisSpacing;
-
-  /// 交叉轴方向间距
-  final double crossAxisSpacing;
 
   /// 每个 tile 主轴方向底部额外空间
   final double tileBottomSpace;
@@ -358,59 +445,70 @@ final class ListGridStairedLayout extends ListGridLayout {
   final bool startCrossAxisDirectionReversed;
 
   @override
-  String toString() => 'ListGridLayout.staired';
+  String toString() => 'ListLayout.staired';
 }
 
-/// [ListGridLayout.woven] 的具体类型，可用于 `switch (layout)` 分支。
-final class ListGridWovenLayout extends ListGridLayout {
-  /// 创建编织布局；通常通过 [ListGridLayout.woven] 构造。
-  const ListGridWovenLayout({
+/// [ListLayout.wovenCount] 的具体类型，可用于 `switch (layout)` 分支。
+final class ListWovenCountLayout extends _SpacingLayout {
+  /// 创建固定列数编织布局；通常通过 [ListLayout.wovenCount] 构造。
+  const ListWovenCountLayout({
     required this.pattern,
     this.crossAxisCount = 1,
-    this.maxCrossAxisExtent,
-    this.mainAxisSpacing = 0,
-    this.crossAxisSpacing = 0,
+    super.mainAxisSpacing,
+    super.crossAxisSpacing,
     this.tileBottomSpace = 0,
   });
 
   /// 编织图案
   final List<WovenGridTile> pattern;
 
-  /// 固定列数；未设置 [maxCrossAxisExtent] 时使用
+  /// 固定列数
   final int crossAxisCount;
-
-  /// 交叉轴最大宽度；设置后走 extent 模式，优先于 [crossAxisCount]
-  final double? maxCrossAxisExtent;
-
-  /// 主轴方向间距
-  final double mainAxisSpacing;
-
-  /// 交叉轴方向间距
-  final double crossAxisSpacing;
 
   /// 每个 tile 主轴方向底部额外空间
   final double tileBottomSpace;
 
   @override
-  String toString() => 'ListGridLayout.woven';
+  String toString() => 'ListLayout.wovenCount';
+}
+
+/// [ListLayout.wovenExtent] 的具体类型，可用于 `switch (layout)` 分支。
+final class ListWovenExtentLayout extends _SpacingLayout {
+  /// 创建自适应列数编织布局；通常通过 [ListLayout.wovenExtent] 构造。
+  const ListWovenExtentLayout({
+    required this.pattern,
+    required this.maxCrossAxisExtent,
+    super.mainAxisSpacing,
+    super.crossAxisSpacing,
+    this.tileBottomSpace = 0,
+  });
+
+  /// 编织图案
+  final List<WovenGridTile> pattern;
+
+  /// 交叉轴最大宽度
+  final double maxCrossAxisExtent;
+
+  /// 每个 tile 主轴方向底部额外空间
+  final double tileBottomSpace;
+
+  @override
+  String toString() => 'ListLayout.wovenExtent';
 }
 
 /// 组合 [SliverList]、[SliverGrid]、[SliverFixedExtentList]、[SliverPrototypeExtentList]、
 /// [SliverMasonryGrid]、[SliverAlignedGrid] 以及 quilted / staired / woven 图案网格。
 ///
-/// 布局参数通过 [layout] 传入，见 [ListGridLayout]。
-class FlSliverListGrid extends StatelessWidget {
+/// 布局参数通过 [layout] 传入，见 [ListLayout]。
+class FlSliverListLayout extends StatelessWidget {
   /// 大量子组件时使用，按需构建并复用。
   ///
-  /// 若同时传入 [separatorBuilder]，行为对齐 [ListView.separated]：
-  /// 分隔符只出现在相邻子项之间（首尾无多余分隔符），
-  /// 实际 child 数为 `max(0, itemCount * 2 - 1)`。
-  const FlSliverListGrid.builder({
+  /// [ListLayout.list] 上带 `separatorBuilder` 时，行为对齐 [ListView.separated]。
+  const FlSliverListLayout.builder({
     super.key,
     required this.itemBuilder,
-    this.separatorBuilder,
     this.itemCount,
-    this.layout = const ListGridLayout.list(),
+    this.layout = const ListLayout.list(),
     this.findChildIndexCallback,
     this.findItemIndexCallback,
     this.semanticIndexCallback = kDefaultSemanticIndexCallback,
@@ -426,24 +524,20 @@ class FlSliverListGrid extends StatelessWidget {
          'Prefer findItemIndexCallback when using separatorBuilder.',
        ),
        assert(
-         separatorBuilder == null || itemCount != null,
-         'separatorBuilder 需要同时提供 itemCount（与 ListView.separated 一致）',
+         layout is! ListAlignedCountLayout || (findChildIndexCallback == null && findItemIndexCallback == null),
+         'Aligned 布局按行批量构建，不支持 findChildIndexCallback / findItemIndexCallback',
        ),
        assert(
-         separatorBuilder == null || layout is ListGridListLayout,
-         'separatorBuilder 仅支持 ListGridLayout.list（与 ListView.separated 一致）',
-       ),
-       assert(
-         layout is! ListGridAlignedLayout || (findChildIndexCallback == null && findItemIndexCallback == null),
+         layout is! ListAlignedExtentLayout || (findChildIndexCallback == null && findItemIndexCallback == null),
          'Aligned 布局按行批量构建，不支持 findChildIndexCallback / findItemIndexCallback',
        ),
        children = null;
 
   /// 少量子组件时使用，直接传入 [children]，无需复用。
-  const FlSliverListGrid.count({
+  const FlSliverListLayout.count({
     super.key,
     required this.children,
-    this.layout = const ListGridLayout.list(),
+    this.layout = const ListLayout.list(),
     this.semanticIndexCallback = kDefaultSemanticIndexCallback,
     this.addAutomaticKeepAlives = true,
     this.addRepaintBoundaries = true,
@@ -454,46 +548,38 @@ class FlSliverListGrid extends StatelessWidget {
   }) : assert(children != null),
        itemBuilder = null,
        itemCount = null,
-       separatorBuilder = null,
        findChildIndexCallback = null,
        findItemIndexCallback = null;
 
-  /// 子项构建器；[FlSliverListGrid.builder] 必传。
+  /// 子项构建器；[FlSliverListLayout.builder] 必传。
   ///
-  /// 使用 [separatorBuilder] 时，[index] 范围为 `0 .. itemCount - 1`。
+  /// [ListPlainLayout.separatorBuilder] 非空时，[index] 范围为 `0 .. itemCount - 1`。
   final IndexedWidgetBuilder? itemBuilder;
 
-  /// 分隔组件构建器，仅 [ListGridListLayout] 生效；用法对齐 [ListView.separated]。
-  ///
-  /// - 分隔符只插在子项之间：第 0 个在 item 0 之后，最后一个在末项之前
-  /// - [index] 范围为 `0 .. itemCount - 2`
-  /// - 必须同时提供 [itemCount]
-  /// - 不可与 [ListGridListLayout.itemExtent] / [ListGridListLayout.prototypeItem] 同用；
-  ///   若同时传入，运行时仍走 [SliverList]（忽略固定高度）
-  final IndexedWidgetBuilder? separatorBuilder;
-
-  /// 子项数量（不含分隔符）。使用 [separatorBuilder] 时必传。
+  /// 子项数量（不含分隔符）。
   final int? itemCount;
 
-  /// 子组件列表；[FlSliverListGrid.count] 必传
+  /// 子组件列表；[FlSliverListLayout.count] 必传
   final List<Widget>? children;
 
-  /// 布局配置，默认 [ListGridLayout.list]
-  final ListGridLayout layout;
+  /// 布局配置，默认 [ListLayout.list]
+  final ListLayout layout;
 
   /// 根据 [Key] 查找 **child** 索引（含分隔符占位），透传给 [SliverChildBuilderDelegate]。
   ///
-  /// 使用 [separatorBuilder] 时请改用 [findItemIndexCallback]（返回不含分隔符的 item 索引）。
-  /// [ListGridAlignedLayout] 不支持该回调。
+  /// [ListPlainLayout.separatorBuilder] 非空时请改用 [findItemIndexCallback]
+  /// （返回不含分隔符的 item 索引）。Aligned 布局不支持该回调。
   final ChildIndexGetter? findChildIndexCallback;
 
   /// 根据 [Key] 查找 **item** 索引（不含分隔符），对齐 [ListView.separated.findItemIndexCallback]。
   ///
-  /// 使用 [separatorBuilder] 时库会将返回值映射为 `itemIndex * 2` 再交给 delegate。
-  /// [ListGridAlignedLayout] 不支持该回调。
+  /// [ListPlainLayout.separatorBuilder] 非空时，库会将返回值映射为 `itemIndex * 2`
+  /// 再交给 delegate。Aligned 布局不支持该回调。
   final ChildIndexGetter? findItemIndexCallback;
 
-  /// 语义索引回调。使用 [separatorBuilder] 时，奇数位（分隔符）不参与语义索引，
+  /// 语义索引回调。
+  ///
+  /// [ListPlainLayout.separatorBuilder] 非空时，奇数位（分隔符）不参与语义索引，
   /// 偶数位会以 item 索引（`index ~/ 2`）调用本回调。
   final SemanticIndexCallback semanticIndexCallback;
 
@@ -533,8 +619,17 @@ class FlSliverListGrid extends StatelessWidget {
       );
     }
 
-    // 与 ListView.separated 一致：仅 list 布局 + separatorBuilder 时交错插入分隔符
-    final bool separate = layout is ListGridListLayout && separatorBuilder != null;
+    // 与 ListView.separated 一致：仅 ListPlainLayout + separatorBuilder 时交错插入分隔符
+    final ListLayout currentLayout = layout;
+    final IndexedWidgetBuilder? separatorBuilder = currentLayout is ListPlainLayout
+        ? currentLayout.separatorBuilder
+        : null;
+    // children 模式忽略 separatorBuilder，无需 itemCount
+    assert(
+      separatorBuilder == null || itemBuilder == null || itemCount != null,
+      'separatorBuilder 需要同时提供 itemCount（与 ListView.separated 一致）',
+    );
+    final bool separate = separatorBuilder != null;
     late final SliverChildDelegate delegate;
     if (itemBuilder != null) {
       int? childCount = itemCount;
@@ -547,7 +642,7 @@ class FlSliverListGrid extends StatelessWidget {
           if (index.isEven) {
             return itemBuilder!(context, itemIndex);
           }
-          return separatorBuilder!(context, itemIndex);
+          return separatorBuilder(context, itemIndex);
         };
         childCount = _computeActualChildCount(itemCount!);
         indexCallback = (Widget widget, int index) {
@@ -582,63 +677,65 @@ class FlSliverListGrid extends StatelessWidget {
     }
 
     switch (layout) {
-      case ListGridListLayout(:final itemExtent, :final prototypeItem):
-        // 有 separator 时必须用变高度 SliverList，不能用 FixedExtent / Prototype
-        if (!separate && itemExtent != null) {
-          return SliverFixedExtentList(delegate: delegate, itemExtent: itemExtent);
-        }
-        if (!separate && prototypeItem != null) {
-          return SliverPrototypeExtentList(delegate: delegate, prototypeItem: prototypeItem);
-        }
+      case ListPlainLayout():
         return SliverList(delegate: delegate);
-      case ListGridGridLayout(
+      case ListFixedLayout(:final itemExtent):
+        return SliverFixedExtentList(delegate: delegate, itemExtent: itemExtent);
+      case ListPrototypeLayout(:final prototypeItem):
+        return SliverPrototypeExtentList(delegate: delegate, prototypeItem: prototypeItem);
+      case ListGridCountLayout(
         :final crossAxisCount,
+        :final mainAxisSpacing,
+        :final crossAxisSpacing,
+        :final childAspectRatio,
+        :final mainAxisExtent,
+      ):
+        return SliverGrid(
+          delegate: delegate,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            mainAxisExtent: mainAxisExtent,
+            mainAxisSpacing: mainAxisSpacing,
+            crossAxisSpacing: crossAxisSpacing,
+            childAspectRatio: childAspectRatio,
+            crossAxisCount: crossAxisCount,
+          ),
+        );
+      case ListGridExtentLayout(
         :final maxCrossAxisExtent,
         :final mainAxisSpacing,
         :final crossAxisSpacing,
         :final childAspectRatio,
         :final mainAxisExtent,
       ):
-        final SliverGridDelegate gridDelegate = maxCrossAxisExtent != null
-            ? SliverGridDelegateWithMaxCrossAxisExtent(
-                mainAxisExtent: mainAxisExtent,
-                mainAxisSpacing: mainAxisSpacing,
-                crossAxisSpacing: crossAxisSpacing,
-                childAspectRatio: childAspectRatio,
-                maxCrossAxisExtent: maxCrossAxisExtent,
-              )
-            : SliverGridDelegateWithFixedCrossAxisCount(
-                mainAxisExtent: mainAxisExtent,
-                mainAxisSpacing: mainAxisSpacing,
-                crossAxisSpacing: crossAxisSpacing,
-                childAspectRatio: childAspectRatio,
-                crossAxisCount: crossAxisCount,
-              );
-        return SliverGrid(delegate: delegate, gridDelegate: gridDelegate);
-      case ListGridMasonryLayout(
-        :final crossAxisCount,
-        :final maxCrossAxisExtent,
-        :final mainAxisSpacing,
-        :final crossAxisSpacing,
-      ):
+        return SliverGrid(
+          delegate: delegate,
+          gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+            mainAxisExtent: mainAxisExtent,
+            mainAxisSpacing: mainAxisSpacing,
+            crossAxisSpacing: crossAxisSpacing,
+            childAspectRatio: childAspectRatio,
+            maxCrossAxisExtent: maxCrossAxisExtent,
+          ),
+        );
+      case ListMasonryCountLayout(:final crossAxisCount, :final mainAxisSpacing, :final crossAxisSpacing):
         return SliverMasonryGrid(
           delegate: delegate,
-          gridDelegate: _simpleGridDelegate(crossAxisCount, maxCrossAxisExtent),
+          gridDelegate: SliverSimpleGridDelegateWithFixedCrossAxisCount(crossAxisCount: crossAxisCount),
           mainAxisSpacing: mainAxisSpacing,
           crossAxisSpacing: crossAxisSpacing,
         );
-      case ListGridAlignedLayout(
-        :final crossAxisCount,
-        :final maxCrossAxisExtent,
-        :final mainAxisSpacing,
-        :final crossAxisSpacing,
-      ):
-        final IndexedWidgetBuilder alignedBuilder =
-            itemBuilder ?? (BuildContext context, int index) => children![index];
+      case ListMasonryExtentLayout(:final maxCrossAxisExtent, :final mainAxisSpacing, :final crossAxisSpacing):
+        return SliverMasonryGrid(
+          delegate: delegate,
+          gridDelegate: SliverSimpleGridDelegateWithMaxCrossAxisExtent(maxCrossAxisExtent: maxCrossAxisExtent),
+          mainAxisSpacing: mainAxisSpacing,
+          crossAxisSpacing: crossAxisSpacing,
+        );
+      case ListAlignedCountLayout(:final crossAxisCount, :final mainAxisSpacing, :final crossAxisSpacing):
         return SliverAlignedGrid(
-          itemBuilder: alignedBuilder,
+          itemBuilder: _alignedItemBuilder,
           itemCount: itemCount ?? children?.length,
-          gridDelegate: _simpleGridDelegate(crossAxisCount, maxCrossAxisExtent),
+          gridDelegate: SliverSimpleGridDelegateWithFixedCrossAxisCount(crossAxisCount: crossAxisCount),
           mainAxisSpacing: mainAxisSpacing,
           crossAxisSpacing: crossAxisSpacing,
           addAutomaticKeepAlives: addAutomaticKeepAlives,
@@ -646,7 +743,19 @@ class FlSliverListGrid extends StatelessWidget {
           addSemanticIndexes: addSemanticIndexes,
           semanticIndexCallback: semanticIndexCallback,
         );
-      case ListGridQuiltedLayout(
+      case ListAlignedExtentLayout(:final maxCrossAxisExtent, :final mainAxisSpacing, :final crossAxisSpacing):
+        return SliverAlignedGrid(
+          itemBuilder: _alignedItemBuilder,
+          itemCount: itemCount ?? children?.length,
+          gridDelegate: SliverSimpleGridDelegateWithMaxCrossAxisExtent(maxCrossAxisExtent: maxCrossAxisExtent),
+          mainAxisSpacing: mainAxisSpacing,
+          crossAxisSpacing: crossAxisSpacing,
+          addAutomaticKeepAlives: addAutomaticKeepAlives,
+          addRepaintBoundaries: addRepaintBoundaries,
+          addSemanticIndexes: addSemanticIndexes,
+          semanticIndexCallback: semanticIndexCallback,
+        );
+      case ListQuiltedLayout(
         :final crossAxisCount,
         :final pattern,
         :final repeatPattern,
@@ -663,7 +772,7 @@ class FlSliverListGrid extends StatelessWidget {
             crossAxisSpacing: crossAxisSpacing,
           ),
         );
-      case ListGridStairedLayout(
+      case ListStairedLayout(
         :final pattern,
         :final mainAxisSpacing,
         :final crossAxisSpacing,
@@ -680,37 +789,47 @@ class FlSliverListGrid extends StatelessWidget {
             startCrossAxisDirectionReversed: startCrossAxisDirectionReversed,
           ),
         );
-      case ListGridWovenLayout(
+      case ListWovenCountLayout(
         :final pattern,
         :final crossAxisCount,
+        :final mainAxisSpacing,
+        :final crossAxisSpacing,
+        :final tileBottomSpace,
+      ):
+        return SliverGrid(
+          delegate: delegate,
+          gridDelegate: SliverWovenGridDelegate.count(
+            pattern: pattern,
+            crossAxisCount: crossAxisCount,
+            mainAxisSpacing: mainAxisSpacing,
+            crossAxisSpacing: crossAxisSpacing,
+            tileBottomSpace: tileBottomSpace,
+          ),
+        );
+      case ListWovenExtentLayout(
+        :final pattern,
         :final maxCrossAxisExtent,
         :final mainAxisSpacing,
         :final crossAxisSpacing,
         :final tileBottomSpace,
       ):
-        final SliverGridDelegate wovenDelegate = maxCrossAxisExtent != null
-            ? SliverWovenGridDelegate.extent(
-                pattern: pattern,
-                maxCrossAxisExtent: maxCrossAxisExtent,
-                mainAxisSpacing: mainAxisSpacing,
-                crossAxisSpacing: crossAxisSpacing,
-                tileBottomSpace: tileBottomSpace,
-              )
-            : SliverWovenGridDelegate.count(
-                pattern: pattern,
-                crossAxisCount: crossAxisCount,
-                mainAxisSpacing: mainAxisSpacing,
-                crossAxisSpacing: crossAxisSpacing,
-                tileBottomSpace: tileBottomSpace,
-              );
-        return SliverGrid(delegate: delegate, gridDelegate: wovenDelegate);
+        return SliverGrid(
+          delegate: delegate,
+          gridDelegate: SliverWovenGridDelegate.extent(
+            pattern: pattern,
+            maxCrossAxisExtent: maxCrossAxisExtent,
+            mainAxisSpacing: mainAxisSpacing,
+            crossAxisSpacing: crossAxisSpacing,
+            tileBottomSpace: tileBottomSpace,
+          ),
+        );
+      case _SpacingLayout():
+        throw StateError('Unreachable: _SpacingLayout 为抽象基类，不应被实例化');
     }
   }
 
-  SliverSimpleGridDelegate _simpleGridDelegate(int crossAxisCount, double? maxCrossAxisExtent) =>
-      maxCrossAxisExtent != null
-      ? SliverSimpleGridDelegateWithMaxCrossAxisExtent(maxCrossAxisExtent: maxCrossAxisExtent)
-      : SliverSimpleGridDelegateWithFixedCrossAxisCount(crossAxisCount: crossAxisCount);
+  Widget _alignedItemBuilder(BuildContext context, int index) =>
+      itemBuilder != null ? itemBuilder!(context, index) : children![index];
 
   int _computeActualChildCount(int itemCount) => math.max(0, itemCount * 2 - 1);
 }

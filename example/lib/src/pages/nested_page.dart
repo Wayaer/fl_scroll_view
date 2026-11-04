@@ -52,7 +52,7 @@ class NestedPage extends StatelessWidget {
                         const SizedBox(height: 12),
                         Text(
                           '外层 FlSliverPersistentHeader + FlSliverPinnedToBoxAdapter；'
-                          '内层 FlRefreshScrollView 需开启 FlEasyRefreshConfig.isNested，'
+                          '内层 FlRefreshableScrollView 需开启 FlEasyRefreshConfig.isNested，'
                           '否则 physics 和指示器容易异常。',
                           style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 11.5, height: 1.5),
                         ),
@@ -89,7 +89,7 @@ class NestedPage extends StatelessWidget {
             ),
           ),
         ],
-        body: FlRefreshScrollView(
+        body: FlRefreshableScrollView(
           padding: const EdgeInsets.all(12),
           refreshConfig: demoRefreshConfig(delay: const Duration(milliseconds: 700)).copyWith(isNested: true),
           slivers: [
@@ -100,16 +100,16 @@ class NestedPage extends StatelessWidget {
                   '内层下拉刷新会与外层滚动协调。',
               tags: ['NestedScrollView', 'isNested', 'FlEasyRefreshConfig.copyWith'],
             ),
-            const SectionTitle('FlSliverListGrid.masonry', subtitle: '内层瀑布流 sliver'),
-            FlSliverListGrid.builder(
-              layout: const ListGridLayout.masonry(crossAxisCount: 2, mainAxisSpacing: 8, crossAxisSpacing: 8),
+            const SectionTitle('FlSliverListLayout.masonry', subtitle: '内层瀑布流 sliver'),
+            FlSliverListLayout.builder(
+              layout: const ListLayout.masonryCount(crossAxisCount: 2, mainAxisSpacing: 8, crossAxisSpacing: 8),
               itemCount: 24,
               itemBuilder: (_, int index) =>
                   ColorEntry(index, colorAt(index), height: masonryHeight(index), label: 'masonry $index'),
             ),
-            const SectionTitle('FlSliverListGrid.list', subtitle: '内层普通列表'),
-            FlSliverListGrid.builder(
-              layout: const ListGridLayout.list(),
+            const SectionTitle('FlSliverListLayout.list', subtitle: '内层普通列表'),
+            FlSliverListLayout.builder(
+              layout: const ListLayout.list(),
               itemCount: 40,
               itemBuilder: (_, int index) => Padding(
                 padding: const EdgeInsets.only(bottom: 8),

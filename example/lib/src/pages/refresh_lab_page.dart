@@ -183,7 +183,7 @@ class _RefreshLabPageState extends State<RefreshLabPage> {
     final String footerCode = _footerStyle == DemoIndicatorStyle.inherited
         ? 'null // 使用全局默认'
         : '${_footerStyle.label}Footer()';
-    return 'FlScrollListGrid.builder(\n'
+    return 'FlScrollListLayout.builder(\n'
         '  refreshConfig: FlEasyRefreshConfig(\n'
         '    controller: controller, // controlFinishRefresh/Load: true\n'
         '    header: $headerCode,\n'
@@ -196,7 +196,7 @@ class _RefreshLabPageState extends State<RefreshLabPage> {
         '    resetAfterRefresh: $_resetAfterRefresh,\n'
         '    refreshOnStart: $_refreshOnStart,\n'
         '  ),\n'
-        '  layout: const ListGridLayout.list(),\n'
+        '  layout: const ListLayout.list(),\n'
         '  itemCount: items.length,\n'
         '  itemBuilder: (_, i) => Tile(items[i]),\n'
         ');';
@@ -310,13 +310,12 @@ class _RefreshLabPageState extends State<RefreshLabPage> {
       body: Column(
         children: [
           Expanded(
-            child: FlScrollListGrid.builder(
+            child: FlScrollListLayout.builder(
               key: ValueKey<String>('refresh-$_refreshOnStart-$_enableRefresh-$_enableLoad'),
               padding: const EdgeInsets.all(12),
               refreshConfig: _config,
-              layout: const ListGridLayout.list(),
+              layout: ListLayout.list(separatorBuilder: (_, _) => const SizedBox(height: 8)),
               itemCount: _items.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 8),
               header: DemoInfoSliver(
                 title: 'FlEasyRefreshConfig',
                 message:

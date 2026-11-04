@@ -27,7 +27,7 @@ class _HomePageState extends State<HomePage> {
         builder: (_) => const ShowcasePage(),
       ),
     ]),
-    _DemoGroup('布局 · ListGridLayout', [
+    _DemoGroup('布局 · ListLayout', [
       _DemoEntry(
         title: 'List 线性列表',
         subtitle: 'itemExtent · prototypeItem · separatorBuilder',
@@ -89,7 +89,7 @@ class _HomePageState extends State<HomePage> {
     ]),
     _DemoGroup('滚动容器', [
       _DemoEntry(
-        title: 'FlRefreshScrollView 参数',
+        title: 'FlRefreshableScrollView 参数',
         subtitle: 'reverse · scrollDirection · physics · anchor · padding · controller',
         icon: Icons.swap_vert_rounded,
         color: demoSeedColors[2],
@@ -104,7 +104,7 @@ class _HomePageState extends State<HomePage> {
       ),
       _DemoEntry(
         title: 'NestedScrollView 嵌套',
-        subtitle: 'isNested · 外层 Header + 内层 FlRefreshScrollView',
+        subtitle: 'isNested · 外层 Header + 内层 FlRefreshableScrollView',
         icon: Icons.call_merge_rounded,
         color: demoSeedColors[4],
         builder: (_) => const NestedPage(),
@@ -285,7 +285,7 @@ class _HeroCard extends StatelessWidget {
             runSpacing: 8,
             children: const [
               DemoPill('easy_refresh 4.x', icon: Icons.refresh_rounded, color: Colors.white, dense: true),
-              DemoPill('ListGridLayout', icon: Icons.grid_view_rounded, color: Colors.white, dense: true),
+              DemoPill('ListLayout', icon: Icons.grid_view_rounded, color: Colors.white, dense: true),
               DemoPill('Staggered Grid', icon: Icons.view_quilt_rounded, color: Colors.white, dense: true),
             ],
           ),

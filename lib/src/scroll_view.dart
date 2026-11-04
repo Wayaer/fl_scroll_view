@@ -5,8 +5,8 @@ import 'package:flutter/rendering.dart';
 
 /// 可刷新的滚动组件
 /// 嵌套 sliver 家族组件
-class FlRefreshScrollView extends StatelessWidget {
-  const FlRefreshScrollView({
+class FlRefreshableScrollView extends StatelessWidget {
+  const FlRefreshableScrollView({
     super.key,
     this.refreshConfig,
     this.padding,
@@ -110,7 +110,7 @@ class FlRefreshScrollView extends StatelessWidget {
     Widget buildScroll(ScrollPhysics? scrollPhysics) {
       Widget scrollView = buildCustomScrollView(scrollPhysics);
       if (noScrollBehavior) {
-        scrollView = ScrollConfiguration(behavior: const NoScrollBehavior(), child: scrollView);
+        scrollView = ScrollConfiguration(behavior: const FlNoOverscrollBehavior(), child: scrollView);
       }
       return scrollView;
     }
@@ -151,8 +151,8 @@ class FlRefreshScrollView extends StatelessWidget {
   );
 }
 
-class NoScrollBehavior extends ScrollBehavior {
-  const NoScrollBehavior();
+class FlNoOverscrollBehavior extends ScrollBehavior {
+  const FlNoOverscrollBehavior();
 
   @override
   Widget buildOverscrollIndicator(BuildContext context, Widget child, ScrollableDetails details) => child;

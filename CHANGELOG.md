@@ -1,3 +1,21 @@
+## 3.0.0
+
+### 变更（破坏性）
+
+* `ListGridLayout` 更名为密封基类 `ListLayout`，每种样式拆为独立工厂与独立类型：
+  * 列表：`ListLayout.list({separatorBuilder})` / `ListLayout.fixed({itemExtent})` / `ListLayout.prototype({prototypeItem})`
+  * 等分网格：`ListLayout.gridCount` / `ListLayout.gridExtent`
+  * 瀑布流：`ListLayout.masonryCount` / `ListLayout.masonryExtent`
+  * 行对齐：`ListLayout.alignedCount` / `ListLayout.alignedExtent`
+  * 图案网格：`ListLayout.quilted` / `ListLayout.staired` / `ListLayout.wovenCount` / `ListLayout.wovenExtent`
+* `crossAxisCount` 与 `maxCrossAxisExtent` 不再二选一：count / extent 拆为两个独立工厂，构造期即确定列数策略
+* `separatorBuilder` 从 `FlSliverListLayout.builder` / `FlScrollListLayout.builder` 移至 `ListLayout.list`，与布局绑定；`children` / `count` 模式自动忽略
+* `FlSliverListGrid` / `FlScrollListGrid` 更名为 `FlSliverListLayout` / `FlScrollListLayout`
+* `NoScrollBehavior` 更名为 `FlNoOverscrollBehavior`：原名称易被误解为禁用滚动，实际只关闭过头滚动指示器
+* `FlRefreshScrollView` 更名为 `FlRefreshableScrollView`
+* 网格 / 瀑布流 / 行对齐 / 图案布局的 `mainAxisSpacing` / `crossAxisSpacing` 抽入共享基类，各布局只暴露自身参数
+* 具体类型可按 `switch (layout)` 细分：`ListPlainLayout` / `ListFixedLayout` / `ListPrototypeLayout` / `ListGridCountLayout` / `ListGridExtentLayout` / `ListMasonryCountLayout` / `ListMasonryExtentLayout` / `ListAlignedCountLayout` / `ListAlignedExtentLayout` / `ListQuiltedLayout` / `ListStairedLayout` / `ListWovenCountLayout` / `ListWovenExtentLayout`
+
 ## 2.1.0
 
 ### 修复

@@ -35,10 +35,9 @@ class _ListOptionsPageState extends State<ListOptionsPage> {
   }
 
   String get _code {
-    return 'FlScrollListGrid.builder(\n'
-        '  layout: const ListGridLayout.list(),\n'
+    return 'FlScrollListLayout.builder(\n'
+        '  layout: ${_separator ? 'ListLayout.list(separatorBuilder: (_, i) => Divider())' : 'const ListLayout.list()'},\n'
         '  itemCount: items.length, // ${_empty ? '0 = 空数据' : '${_order.length}'}\n'
-        '  ${_separator ? 'separatorBuilder: (_, i) => Divider(),' : '// separatorBuilder 已关闭'}\n'
         '  findItemIndexCallback: (key) => indexOfItem(key),\n'
         '  addAutomaticKeepAlives: $_keepAlives,\n'
         '  addRepaintBoundaries: $_repaint,\n'
@@ -88,12 +87,12 @@ class _ListOptionsPageState extends State<ListOptionsPage> {
         : null;
 
     if (_useCount) {
-      return FlScrollListGrid.count(
+      return FlScrollListLayout.count(
         key: ValueKey<String>('options-count-$_empty-$_showHeader-$_showFooter'),
         padding: const EdgeInsets.all(12),
         refreshConfig: config,
         reverse: _reverse,
-        layout: const ListGridLayout.list(),
+        layout: const ListLayout.list(),
         header: header,
         footer: footer,
         placeholder: placeholder,
@@ -109,14 +108,15 @@ class _ListOptionsPageState extends State<ListOptionsPage> {
       );
     }
 
-    return FlScrollListGrid.builder(
+    return FlScrollListLayout.builder(
       key: ValueKey<String>('options-builder-$_empty-$_showHeader-$_showFooter'),
       padding: const EdgeInsets.all(12),
       refreshConfig: config,
       reverse: _reverse,
-      layout: const ListGridLayout.list(),
+      layout: _separator
+          ? ListLayout.list(separatorBuilder: (_, int index) => const Divider(height: 8, thickness: 2))
+          : const ListLayout.list(),
       itemCount: _empty ? 0 : _order.length,
-      separatorBuilder: _separator ? (_, int index) => const Divider(height: 8, thickness: 2) : null,
       findItemIndexCallback: (Key key) {
         if (key is! ValueKey<int>) return null;
         final int index = _order.indexOf(key.value);
@@ -234,7 +234,7 @@ class _ListOptionsPageState extends State<ListOptionsPage> {
           IconButton(
             tooltip: '查看代码',
             icon: const Icon(Icons.code_rounded),
-            onPressed: () => showCodeSheet(context, title: 'FlScrollListGrid 列表细节', code: _code),
+            onPressed: () => showCodeSheet(context, title: 'FlScrollListLayout 列表细节', code: _code),
           ),
         ],
       ),

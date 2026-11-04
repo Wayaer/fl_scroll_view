@@ -1,6 +1,6 @@
 name: fl_scroll_view
 description: "fl_scroll_view encapsulates and extends easy_refresh, and includes staggered grid layouts."
-version: 2.1.0
+version: 3.0.0
 repository: https://github.com/Wayaer/fl_scroll_view
 
 environment:
