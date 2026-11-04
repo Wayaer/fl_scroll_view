@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:fl_scroll_view/src/semantic_index.dart';
+import 'package:fl_scroll_view/src/sliver/sliver_list_layout.dart';
 import 'package:fl_scroll_view/src/staggered/sliver_simple_grid_delegate.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
@@ -187,7 +187,7 @@ class SliverAlignedGrid extends StatelessWidget {
     this.addAutomaticKeepAlives = true,
     this.addRepaintBoundaries = true,
     this.addSemanticIndexes = true,
-    this.semanticIndexCallback = kDefaultSemanticIndexCallback,
+    this.semanticIndexCallback = flDefaultSemanticIndexCallback,
   });
 
   SliverAlignedGrid.count({
@@ -200,7 +200,7 @@ class SliverAlignedGrid extends StatelessWidget {
     bool addAutomaticKeepAlives = true,
     bool addRepaintBoundaries = true,
     bool addSemanticIndexes = true,
-    SemanticIndexCallback semanticIndexCallback = kDefaultSemanticIndexCallback,
+    SemanticIndexCallback semanticIndexCallback = flDefaultSemanticIndexCallback,
   }) : this(
          key: key,
          itemBuilder: itemBuilder,
@@ -224,7 +224,7 @@ class SliverAlignedGrid extends StatelessWidget {
     bool addAutomaticKeepAlives = true,
     bool addRepaintBoundaries = true,
     bool addSemanticIndexes = true,
-    SemanticIndexCallback semanticIndexCallback = kDefaultSemanticIndexCallback,
+    SemanticIndexCallback semanticIndexCallback = flDefaultSemanticIndexCallback,
   }) : this(
          key: key,
          itemBuilder: itemBuilder,

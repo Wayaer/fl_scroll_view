@@ -51,7 +51,7 @@ class _ScrollViewLabPageState extends State<ScrollViewLabPage> {
   }
 
   String get _code {
-    return 'FlRefreshScrollView(\n'
+    return 'FlRefreshableScrollView(\n'
         '  controller: controller,\n'
         '  scrollDirection: $_axis,\n'
         '  reverse: $_reverse,\n'
@@ -64,8 +64,8 @@ class _ScrollViewLabPageState extends State<ScrollViewLabPage> {
         '  refreshConfig: ${_refreshEnabled ? 'config' : 'null'},\n'
         '  slivers: [\n'
         '    FlSliverPinnedToBoxAdapter(child: PinnedBar()),\n'
-        '    FlSliverListGrid.builder(\n'
-        '      layout: const ListGridLayout.list(),\n'
+        '    FlSliverListLayout.builder(\n'
+        '      layout: const ListLayout.list(),\n'
         '      itemCount: 40,\n'
         '      itemBuilder: (_, i) => Tile(i),\n'
         '    ),\n'
@@ -164,7 +164,7 @@ class _ScrollViewLabPageState extends State<ScrollViewLabPage> {
 
   Widget _buildScroll() {
     final bool vertical = _axis == Axis.vertical;
-    return FlRefreshScrollView(
+    return FlRefreshableScrollView(
       key: ValueKey<String>('scroll-${_axis.name}-$_reverse-$_anchor-${_physics.name}-$_refreshEnabled'),
       controller: _scrollController,
       scrollDirection: _axis,
@@ -183,12 +183,12 @@ class _ScrollViewLabPageState extends State<ScrollViewLabPage> {
           FlSliverPinnedToBoxAdapter(child: _pinnedBar(context)),
           SliverToBoxAdapter(child: _searchField()),
           SectionTitle(
-            'FlRefreshScrollView · vertical',
+            'FlRefreshableScrollView · vertical',
             subtitle: _refreshEnabled ? '刷新已开启：physics 由 EasyRefresh 接管' : '刷新已关闭：physics = ${_physics.label}',
           ),
         ],
-        FlSliverListGrid.builder(
-          layout: const ListGridLayout.list(),
+        FlSliverListLayout.builder(
+          layout: const ListLayout.list(),
           itemCount: 40,
           itemBuilder: (_, int index) => vertical ? _verticalItem(index) : _horizontalItem(index),
         ),
@@ -284,12 +284,12 @@ class _ScrollViewLabPageState extends State<ScrollViewLabPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBarText(
-        'FlRefreshScrollView 参数',
+        'FlRefreshableScrollView 参数',
         actions: [
           IconButton(
             tooltip: '查看代码',
             icon: const Icon(Icons.code_rounded),
-            onPressed: () => showCodeSheet(context, title: 'FlRefreshScrollView 示例', code: _code),
+            onPressed: () => showCodeSheet(context, title: 'FlRefreshableScrollView 示例', code: _code),
           ),
         ],
       ),

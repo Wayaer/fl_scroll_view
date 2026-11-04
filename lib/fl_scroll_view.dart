@@ -16,8 +16,8 @@ export 'package:fl_scroll_view/src/staggered/staggered_grid.dart'
         StaggeredGridDelegateWithMaxCrossAxisExtent;
 
 export 'package:fl_scroll_view/src/easy_refresh.dart';
-export 'package:fl_scroll_view/src/scroll_list_grid.dart';
+export 'package:fl_scroll_view/src/scroll_list_layout.dart';
 export 'package:fl_scroll_view/src/scroll_view.dart';
-export 'package:fl_scroll_view/src/sliver/sliver_list_grid.dart';
+export 'package:fl_scroll_view/src/sliver/sliver_list_layout.dart';
 export 'package:fl_scroll_view/src/sliver/sliver_persistent_header.dart';
 export 'package:fl_scroll_view/src/sliver/sliver_pinned_to_box_adapter.dart';

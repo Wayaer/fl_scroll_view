@@ -1,14 +1,13 @@
 import 'package:fl_scroll_view/fl_scroll_view.dart';
-import 'package:fl_scroll_view/src/semantic_index.dart';
 import 'package:flutter/gestures.dart';
 import 'package:material_ui/material_ui.dart';
 
-/// 带下拉刷新的列表 / 网格滚动组件，内部组合 [FlSliverListGrid]。
+/// 带下拉刷新的列表 / 网格滚动组件，内部组合 [FlSliverListLayout]。
 ///
 /// 常用构造：
-/// - [FlScrollListGrid]：自行传入多个 sliver
-/// - [FlScrollListGrid.builder]：大量数据，按需构建
-/// - [FlScrollListGrid.count]：少量数据，直接传 [children]
+/// - [FlScrollListLayout]：自行传入多个 sliver
+/// - [FlScrollListLayout.builder]：大量数据，按需构建
+/// - [FlScrollListLayout.count]：少量数据，直接传 [children]
 ///
 /// [physics] 常用取值：
 /// - [AlwaysScrollableScrollPhysics]：始终可滚动
@@ -18,9 +17,9 @@ import 'package:material_ui/material_ui.dart';
 ///
 /// 传入 [refreshConfig] 时，实际 physics 由 EasyRefresh 接管，
 /// [physics] 仅用于推导 [shrinkWrap] 与 [placeholderFill] 的默认值。
-class FlScrollListGrid extends FlRefreshScrollView {
+class FlScrollListLayout extends FlRefreshableScrollView {
   /// 自行组合多个 sliver，可额外加 [header] / [footer]。
-  const FlScrollListGrid({
+  const FlScrollListLayout({
     super.key,
 
     /// 是否反向滚动
@@ -75,8 +74,8 @@ class FlScrollListGrid extends FlRefreshScrollView {
     this.footer,
   });
 
-  /// 大量数据时使用，内部为 [FlSliverListGrid.builder]。
-  FlScrollListGrid.builder({
+  /// 大量数据时使用，内部为 [FlSliverListLayout.builder]。
+  FlScrollListLayout.builder({
     super.key,
 
     /// 是否反向滚动
@@ -128,7 +127,7 @@ class FlScrollListGrid extends FlRefreshScrollView {
     ChildIndexGetter? findItemIndexCallback,
 
     /// 语义索引回调
-    SemanticIndexCallback semanticIndexCallback = kDefaultSemanticIndexCallback,
+    SemanticIndexCallback semanticIndexCallback = flDefaultSemanticIndexCallback,
 
     /// 是否自动包裹 AutomaticKeepAlive
     bool addAutomaticKeepAlives = true,
@@ -139,16 +138,13 @@ class FlScrollListGrid extends FlRefreshScrollView {
     /// 是否添加语义索引
     bool addSemanticIndexes = true,
 
-    /// 布局配置，默认列表
-    ListGridLayout layout = const ListGridLayout.list(),
+    /// 布局配置，默认线性列表
+    ListLayout layout = const ListLayout.list(),
 
     /// 子项构建器
     required IndexedWidgetBuilder itemBuilder,
 
-    /// 分隔组件构建器，仅 [ListGridListLayout] 生效；用法对齐 [ListView.separated]
-    IndexedWidgetBuilder? separatorBuilder,
-
-    /// 子项数量（不含分隔符）；使用 [separatorBuilder] 时必传
+    /// 子项数量；`ListLayout.list(separatorBuilder: ...)` 时必传
     int? itemCount,
 
     /// [itemCount] 为 0 时的占位组件
@@ -170,7 +166,7 @@ class FlScrollListGrid extends FlRefreshScrollView {
     /// 底部 sliver
     this.footer,
   }) : sliver = [
-         FlSliverListGrid.builder(
+         FlSliverListLayout.builder(
            placeholder: placeholder,
            placeholderFill: _placeholderFill(placeholderFill, physics, shrinkWrap),
            placeholderFillOverscroll: placeholderFillOverscroll,
@@ -182,13 +178,12 @@ class FlScrollListGrid extends FlRefreshScrollView {
            semanticIndexCallback: semanticIndexCallback,
            layout: layout,
            itemBuilder: itemBuilder,
-           separatorBuilder: separatorBuilder,
            itemCount: itemCount,
          ),
        ];
 
-  /// 少量数据时使用，内部为 [FlSliverListGrid.count]。
-  FlScrollListGrid.count({
+  /// 少量数据时使用，内部为 [FlSliverListLayout.count]。
+  FlScrollListLayout.count({
     super.key,
 
     /// 是否反向滚动
@@ -234,7 +229,7 @@ class FlScrollListGrid extends FlRefreshScrollView {
     super.hitTestBehavior = HitTestBehavior.opaque,
 
     /// 语义索引回调
-    SemanticIndexCallback semanticIndexCallback = kDefaultSemanticIndexCallback,
+    SemanticIndexCallback semanticIndexCallback = flDefaultSemanticIndexCallback,
 
     /// 是否自动包裹 AutomaticKeepAlive
     bool addAutomaticKeepAlives = true,
@@ -245,8 +240,8 @@ class FlScrollListGrid extends FlRefreshScrollView {
     /// 是否添加语义索引
     bool addSemanticIndexes = true,
 
-    /// 布局配置，默认列表
-    ListGridLayout layout = const ListGridLayout.list(),
+    /// 布局配置，默认线性列表
+    ListLayout layout = const ListLayout.list(),
 
     /// 子组件列表
     required List<Widget> children,
@@ -270,7 +265,7 @@ class FlScrollListGrid extends FlRefreshScrollView {
     /// 底部 sliver
     this.footer,
   }) : sliver = [
-         FlSliverListGrid.count(
+         FlSliverListLayout.count(
            semanticIndexCallback: semanticIndexCallback,
            placeholder: placeholder,
            placeholderFill: _placeholderFill(placeholderFill, physics, shrinkWrap),

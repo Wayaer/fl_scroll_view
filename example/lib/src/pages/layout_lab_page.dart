@@ -101,35 +101,45 @@ class _LayoutLabPageState extends State<LayoutLabPage> {
     });
   }
 
-  ListGridLayout get _layout {
+  ListLayout get _layout {
     switch (_kind) {
       case DemoLayoutKind.list:
-        return ListGridLayout.list(itemExtent: _fixedItemExtent ? _itemExtent : null);
+        if (_fixedItemExtent) return ListLayout.fixed(itemExtent: _itemExtent);
+        return ListLayout.list(separatorBuilder: showSeparator ? (_, int index) => _divider(index) : null);
       case DemoLayoutKind.grid:
-        return ListGridLayout.grid(
-          crossAxisCount: _columns,
-          maxCrossAxisExtent: _maxExtentMode ? _maxExtent : null,
-          mainAxisSpacing: _spacing,
-          crossAxisSpacing: _spacing,
-          childAspectRatio: _aspectRatio,
-          mainAxisExtent: _fixedMainExtent ? _mainExtent : null,
-        );
+        return _maxExtentMode
+            ? ListLayout.gridExtent(
+                maxCrossAxisExtent: _maxExtent,
+                mainAxisSpacing: _spacing,
+                crossAxisSpacing: _spacing,
+                childAspectRatio: _aspectRatio,
+                mainAxisExtent: _fixedMainExtent ? _mainExtent : null,
+              )
+            : ListLayout.gridCount(
+                crossAxisCount: _columns,
+                mainAxisSpacing: _spacing,
+                crossAxisSpacing: _spacing,
+                childAspectRatio: _aspectRatio,
+                mainAxisExtent: _fixedMainExtent ? _mainExtent : null,
+              );
       case DemoLayoutKind.masonry:
-        return ListGridLayout.masonry(
-          crossAxisCount: _columns,
-          maxCrossAxisExtent: _maxExtentMode ? _maxExtent : null,
-          mainAxisSpacing: _spacing,
-          crossAxisSpacing: _spacing,
-        );
+        return _maxExtentMode
+            ? ListLayout.masonryExtent(
+                maxCrossAxisExtent: _maxExtent,
+                mainAxisSpacing: _spacing,
+                crossAxisSpacing: _spacing,
+              )
+            : ListLayout.masonryCount(crossAxisCount: _columns, mainAxisSpacing: _spacing, crossAxisSpacing: _spacing);
       case DemoLayoutKind.aligned:
-        return ListGridLayout.aligned(
-          crossAxisCount: _columns,
-          maxCrossAxisExtent: _maxExtentMode ? _maxExtent : null,
-          mainAxisSpacing: _spacing,
-          crossAxisSpacing: _spacing,
-        );
+        return _maxExtentMode
+            ? ListLayout.alignedExtent(
+                maxCrossAxisExtent: _maxExtent,
+                mainAxisSpacing: _spacing,
+                crossAxisSpacing: _spacing,
+              )
+            : ListLayout.alignedCount(crossAxisCount: _columns, mainAxisSpacing: _spacing, crossAxisSpacing: _spacing);
       case DemoLayoutKind.quilted:
-        return ListGridLayout.quilted(
+        return ListLayout.quilted(
           crossAxisCount: _columns,
           pattern: quiltedPattern,
           repeatPattern: _repeatPattern,
@@ -137,7 +147,7 @@ class _LayoutLabPageState extends State<LayoutLabPage> {
           crossAxisSpacing: _spacing,
         );
       case DemoLayoutKind.staired:
-        return ListGridLayout.staired(
+        return ListLayout.staired(
           pattern: stairedPattern,
           mainAxisSpacing: _spacing,
           crossAxisSpacing: _spacing,
@@ -145,17 +155,25 @@ class _LayoutLabPageState extends State<LayoutLabPage> {
           startCrossAxisDirectionReversed: _stairedReversed,
         );
       case DemoLayoutKind.woven:
-        return ListGridLayout.woven(
-          pattern: [
-            const WovenGridTile(1),
-            WovenGridTile(5 / 7, crossAxisRatio: _wovenCrossAxisRatio, alignment: _wovenAlignment),
-          ],
-          crossAxisCount: _columns,
-          maxCrossAxisExtent: _maxExtentMode ? _maxExtent : null,
-          mainAxisSpacing: _spacing,
-          crossAxisSpacing: _spacing,
-          tileBottomSpace: _tileBottomSpace,
-        );
+        final List<WovenGridTile> pattern = [
+          const WovenGridTile(1),
+          WovenGridTile(5 / 7, crossAxisRatio: _wovenCrossAxisRatio, alignment: _wovenAlignment),
+        ];
+        return _maxExtentMode
+            ? ListLayout.wovenExtent(
+                pattern: pattern,
+                maxCrossAxisExtent: _maxExtent,
+                mainAxisSpacing: _spacing,
+                crossAxisSpacing: _spacing,
+                tileBottomSpace: _tileBottomSpace,
+              )
+            : ListLayout.wovenCount(
+                pattern: pattern,
+                crossAxisCount: _columns,
+                mainAxisSpacing: _spacing,
+                crossAxisSpacing: _spacing,
+                tileBottomSpace: _tileBottomSpace,
+              );
     }
   }
 
@@ -212,14 +230,13 @@ class _LayoutLabPageState extends State<LayoutLabPage> {
         return FlEasyRefreshResult.loadingSuccess;
       },
     );
-    final bool showSeparator = _kind == DemoLayoutKind.list && _separator;
     final Widget? placeholder = _empty
         ? DemoEmptyPlaceholder(fill: _placeholderFill, overscroll: _placeholderFillOverscroll)
         : null;
     final int count = _empty ? 0 : _itemCount;
 
     if (_useCount) {
-      return FlScrollListGrid.count(
+      return FlScrollListLayout.count(
         key: ValueKey<String>('layout-count-${_kind.name}-$_empty'),
         padding: const EdgeInsets.all(12),
         refreshConfig: config,
@@ -232,14 +249,13 @@ class _LayoutLabPageState extends State<LayoutLabPage> {
       );
     }
 
-    return FlScrollListGrid.builder(
+    return FlScrollListLayout.builder(
       key: ValueKey<String>('layout-builder-${_kind.name}-$_empty'),
       padding: const EdgeInsets.all(12),
       refreshConfig: config,
       reverse: _reverse,
       layout: _layout,
       itemCount: count,
-      separatorBuilder: showSeparator ? (_, int index) => _divider(index) : null,
       itemBuilder: (_, int index) => _item(index),
       placeholder: placeholder,
       placeholderFill: _placeholderFill,
@@ -257,18 +273,21 @@ class _LayoutLabPageState extends State<LayoutLabPage> {
       _maxExtentMode ? 'maxCrossAxisExtent: ${_maxExtent.toStringAsFixed(0)}' : 'crossAxisCount: $_columns';
 
   String _layoutCall(String name, List<String> args) {
-    if (args.isEmpty) return 'ListGridLayout.$name()';
-    return 'const ListGridLayout.$name(\n${args.map((String arg) => '  $arg').join(',\n')}\n)';
+    if (args.isEmpty) return 'ListLayout.$name()';
+    return 'const ListLayout.$name(\n${args.map((String arg) => '  $arg').join(',\n')}\n)';
   }
 
   String get _code {
     final String spacing = 'mainAxisSpacing: ${_spacing.toStringAsFixed(0)}';
     final String crossSpacing = 'crossAxisSpacing: ${_spacing.toStringAsFixed(0)}';
     final String layoutCode = switch (_kind) {
-      DemoLayoutKind.list => _layoutCall('list', [
-        if (_fixedItemExtent) 'itemExtent: ${_itemExtent.toStringAsFixed(0)}',
-      ]),
-      DemoLayoutKind.grid => _layoutCall('grid', [
+      DemoLayoutKind.list =>
+        _fixedItemExtent
+            ? 'const ListLayout.fixed(itemExtent: ${_itemExtent.toStringAsFixed(0)})'
+            : _separator
+            ? 'ListLayout.list(separatorBuilder: (_, i) => Divider())'
+            : 'const ListLayout.list()',
+      DemoLayoutKind.grid => _layoutCall(_maxExtentMode ? 'gridExtent' : 'gridCount', [
         _columnArg,
         spacing,
         crossSpacing,
@@ -277,8 +296,16 @@ class _LayoutLabPageState extends State<LayoutLabPage> {
         else
           'childAspectRatio: ${_aspectRatio.toStringAsFixed(2)}',
       ]),
-      DemoLayoutKind.masonry => _layoutCall('masonry', [_columnArg, spacing, crossSpacing]),
-      DemoLayoutKind.aligned => _layoutCall('aligned', [_columnArg, spacing, crossSpacing]),
+      DemoLayoutKind.masonry => _layoutCall(_maxExtentMode ? 'masonryExtent' : 'masonryCount', [
+        _columnArg,
+        spacing,
+        crossSpacing,
+      ]),
+      DemoLayoutKind.aligned => _layoutCall(_maxExtentMode ? 'alignedExtent' : 'alignedCount', [
+        _columnArg,
+        spacing,
+        crossSpacing,
+      ]),
       DemoLayoutKind.quilted => _layoutCall('quilted', [
         'crossAxisCount: $_columns',
         'pattern: quiltedPattern',
@@ -293,7 +320,7 @@ class _LayoutLabPageState extends State<LayoutLabPage> {
         if (_tileBottomSpace > 0) 'tileBottomSpace: ${_tileBottomSpace.toStringAsFixed(0)}',
         if (_stairedReversed) 'startCrossAxisDirectionReversed: true',
       ]),
-      DemoLayoutKind.woven => _layoutCall('woven', [
+      DemoLayoutKind.woven => _layoutCall(_maxExtentMode ? 'wovenExtent' : 'wovenCount', [
         _columnArg,
         'pattern: wovenPattern',
         spacing,
@@ -303,11 +330,10 @@ class _LayoutLabPageState extends State<LayoutLabPage> {
     };
     final String indented = layoutCode.replaceAll('\n', '\n  ');
 
-    return 'FlScrollListGrid.builder(\n'
+    return 'FlScrollListLayout.builder(\n'
         '  layout: $indented,\n'
         '  itemCount: $_itemCount,\n'
         '  itemBuilder: (_, i) => Tile(i),\n'
-        '${showSeparator ? '  separatorBuilder: (_, i) => Divider(),\n' : ''}'
         '  refreshConfig: config,\n'
         ');';
   }
@@ -400,7 +426,7 @@ class _LayoutLabPageState extends State<LayoutLabPage> {
           Padding(
             padding: const EdgeInsets.only(top: 2),
             child: Text(
-              'count 模式不提供 separatorBuilder（与 FlScrollListGrid.count 一致）。',
+              'count 模式不提供 separatorBuilder（与 FlScrollListLayout.count 一致）。',
               style: TextStyle(fontSize: 10.5, color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
           )
@@ -408,7 +434,7 @@ class _LayoutLabPageState extends State<LayoutLabPage> {
           Padding(
             padding: const EdgeInsets.only(top: 2),
             child: Text(
-              'separatorBuilder 与 itemExtent 同用时，库会退回普通 SliverList。',
+              '固定 itemExtent 与 separatorBuilder 互斥，当前忽略分隔符。',
               style: TextStyle(fontSize: 10.5, color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
           ),
@@ -575,7 +601,7 @@ class _LayoutLabPageState extends State<LayoutLabPage> {
           ),
           Expanded(child: _buildPreview()),
           DemoDock(
-            title: 'ListGridLayout 参数实验台',
+            title: 'ListLayout 参数实验台',
             trailing: TextButton(onPressed: _reset, child: const Text('重置')),
             children: _controls(),
           ),

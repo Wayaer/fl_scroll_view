@@ -18,15 +18,15 @@ void main() {
         body: SingleChildScrollView(
           child: Column(
             children: [
-              FlScrollListGrid.builder(
+              FlScrollListLayout.builder(
                 shrinkWrap: true,
                 itemCount: 0,
-                itemBuilder: (BuildContext context, int index) => Text('$index')
+                itemBuilder: (BuildContext context, int index) => Text('$index'),
               ),
-            ]
-          )
-        )
-      )
+            ],
+          ),
+        ),
+      ),
     );
     expect(tester.takeException(), isNull);
   });
@@ -41,18 +41,18 @@ void main() {
               CustomScrollView(
                 shrinkWrap: true,
                 slivers: [
-                  FlSliverListGrid.builder(
+                  FlSliverListLayout.builder(
                     itemCount: 0,
                     placeholderFill: true,
                     placeholder: const Text('empty'),
-                    itemBuilder: (BuildContext context, int index) => Text('$index')
+                    itemBuilder: (BuildContext context, int index) => Text('$index'),
                   ),
-                ]
+                ],
               ),
-            ]
-          )
-        )
-      )
+            ],
+          ),
+        ),
+      ),
     );
     expect(tester.takeException(), isNull);
     expect(find.text('empty'), findsOneWidget);
@@ -64,14 +64,14 @@ void main() {
     await pumpApp(
       tester,
       Scaffold(
-        body: FlRefreshScrollView(
+        body: FlRefreshableScrollView(
           refreshConfig: FlEasyRefreshConfig(
             controller: controller,
-            onRefresh: (EasyRefreshController controller) async => FlEasyRefreshResult.refreshFailed
+            onRefresh: (EasyRefreshController controller) async => FlEasyRefreshResult.refreshFailed,
           ),
-          slivers: [SliverToBoxAdapter(child: SizedBox(height: 2000))]
-        )
-      )
+          slivers: [SliverToBoxAdapter(child: SizedBox(height: 2000))],
+        ),
+      ),
     );
     unawaited(controller.callRefresh());
     await tester.pump();
@@ -90,14 +90,14 @@ void main() {
     await pumpApp(
       tester,
       Scaffold(
-        body: FlRefreshScrollView(
+        body: FlRefreshableScrollView(
           refreshConfig: FlEasyRefreshConfig(
             controller: controller,
-            onRefresh: (EasyRefreshController controller) async => throw StateError('boom')
+            onRefresh: (EasyRefreshController controller) async => throw StateError('boom'),
           ),
-          slivers: [SliverToBoxAdapter(child: SizedBox(height: 2000))]
-        )
-      )
+          slivers: [SliverToBoxAdapter(child: SizedBox(height: 2000))],
+        ),
+      ),
     );
     unawaited(controller.callRefresh());
     await tester.pump();
@@ -123,12 +123,12 @@ void main() {
             SliverMasonryGrid.count(
               crossAxisCount: 2,
               childCount: 120,
-              itemBuilder: (BuildContext context, int index) => SizedBox(height: 60 + index % 5 * 20)
+              itemBuilder: (BuildContext context, int index) => SizedBox(height: 60 + index % 5 * 20),
             ),
             SliverToBoxAdapter(child: SizedBox(height: 300)),
-          ]
-        )
-      )
+          ],
+        ),
+      ),
     );
     final double extent = controller.position.maxScrollExtent;
     controller.jumpTo(extent * 0.7);
@@ -152,12 +152,12 @@ void main() {
               SliverMasonryGrid.extent(
                 maxCrossAxisExtent: 100,
                 childCount: 5,
-                itemBuilder: (BuildContext context, int index) => const SizedBox.shrink()
+                itemBuilder: (BuildContext context, int index) => const SizedBox.shrink(),
               ),
-            ]
-          )
-        )
-      )
+            ],
+          ),
+        ),
+      ),
     );
     expect(tester.takeException(), isNull);
   });
@@ -170,10 +170,10 @@ void main() {
           SliverAlignedGrid.count(
             crossAxisCount: 2,
             itemCount: 0,
-            itemBuilder: (BuildContext context, int index) => Text('$index')
+            itemBuilder: (BuildContext context, int index) => Text('$index'),
           ),
-        ]
-      )
+        ],
+      ),
     );
     expect(tester.takeException(), isNull);
   });
@@ -181,7 +181,7 @@ void main() {
   test('quilted pattern rejects invalid tiles in release too', () {
     expect(
       () => SliverQuiltedGridDelegate(crossAxisCount: 2, pattern: [const QuiltedGridTile(1, 3)]),
-      throwsArgumentError
+      throwsArgumentError,
     );
     expect(() => SliverQuiltedGridDelegate(crossAxisCount: 2, pattern: const []), throwsArgumentError);
   });
@@ -208,15 +208,15 @@ void main() {
   test('woven delegate compares pattern contents instead of identity', () {
     final SliverWovenGridDelegate first = SliverWovenGridDelegate.extent(
       pattern: [const WovenGridTile(1)],
-      maxCrossAxisExtent: 100
+      maxCrossAxisExtent: 100,
     );
     final SliverWovenGridDelegate same = SliverWovenGridDelegate.extent(
       pattern: [const WovenGridTile(1)],
-      maxCrossAxisExtent: 100
+      maxCrossAxisExtent: 100,
     );
     final SliverWovenGridDelegate different = SliverWovenGridDelegate.extent(
       pattern: [const WovenGridTile(2)],
-      maxCrossAxisExtent: 100
+      maxCrossAxisExtent: 100,
     );
     expect(same.shouldRelayout(first), isFalse);
     expect(different.shouldRelayout(first), isTrue);
@@ -226,8 +226,8 @@ void main() {
     await pumpApp(
       tester,
       CustomScrollView(
-        slivers: [FlSliverPersistentHeader(child: SizedBox(height: kToolbarHeight))]
-      )
+        slivers: [FlSliverPersistentHeader(child: SizedBox(height: kToolbarHeight))],
+      ),
     );
     final FlSliverPersistentHeader header = tester.widget(find.byType(FlSliverPersistentHeader));
     expect(header.pinned, isTrue);
@@ -238,7 +238,7 @@ void main() {
     final FlSliverPersistentHeader header = FlSliverPersistentHeader(
       minHeight: 100,
       maxHeight: 50,
-      child: const SizedBox()
+      child: const SizedBox(),
     );
     final FlSliverPersistentHeaderDelegate delegate = header.delegate as FlSliverPersistentHeaderDelegate;
     expect(delegate.maxExtent, 100);
@@ -247,12 +247,12 @@ void main() {
 
   test('aligned layout rejects find callbacks', () {
     expect(
-      () => FlSliverListGrid.builder(
-        layout: const ListGridLayout.aligned(),
+      () => FlSliverListLayout.builder(
+        layout: const ListLayout.alignedCount(),
         itemBuilder: (BuildContext context, int index) => const SizedBox(),
-        findItemIndexCallback: (Key key) => null
+        findItemIndexCallback: (Key key) => null,
       ),
-      throwsAssertionError
+      throwsAssertionError,
     );
   });
 
@@ -263,8 +263,8 @@ void main() {
         slivers: [
           FlSliverPinnedToBoxAdapter(child: Container(height: 50)),
           SliverToBoxAdapter(child: SizedBox(height: 2000)),
-        ]
-      )
+        ],
+      ),
     );
     expect(find.byType(FlSliverPinnedToBoxAdapter), findsOneWidget);
     expect(find.byType(Semantics), findsWidgets);
@@ -272,7 +272,7 @@ void main() {
   });
 
   testWidgets('pinned and floating headers follow pull-to-refresh and pinned stays afterwards', (
-    WidgetTester tester
+    WidgetTester tester,
   ) async {
     final ScrollController scroll = ScrollController();
     addTearDown(scroll.dispose);
@@ -282,10 +282,10 @@ void main() {
     await pumpApp(
       tester,
       Scaffold(
-        body: FlRefreshScrollView(
+        body: FlRefreshableScrollView(
           controller: scroll,
           refreshConfig: FlEasyRefreshConfig(
-            onRefresh: (EasyRefreshController controller) async => FlEasyRefreshResult.refreshSuccess
+            onRefresh: (EasyRefreshController controller) async => FlEasyRefreshResult.refreshSuccess,
           ),
           slivers: [
             FlSliverPersistentHeader(
@@ -293,20 +293,20 @@ void main() {
               floating: false,
               minHeight: 56,
               maxHeight: 56,
-              child: SizedBox(key: persKey, height: 56)
+              child: SizedBox(key: persKey, height: 56),
             ),
             FlSliverPersistentHeader(
               pinned: false,
               floating: true,
               minHeight: 40,
               maxHeight: 40,
-              child: SizedBox(key: floatingKey, height: 40)
+              child: SizedBox(key: floatingKey, height: 40),
             ),
             FlSliverPinnedToBoxAdapter(child: SizedBox(key: pinKey, height: 50)),
             SliverToBoxAdapter(child: SizedBox(height: 2000)),
-          ]
-        )
-      )
+          ],
+        ),
+      ),
     );
     final Finder pers = find.byKey(persKey);
     final Finder floating = find.byKey(floatingKey);

@@ -109,7 +109,8 @@ class _RenderSliverMasonryGrid({
   @override
   void collectGarbage(int leadingGarbage, int trailingGarbage) {
     int count = leadingGarbage;
-    RenderBox? child = firstChild!;
+    // 勿对 firstChild 强解包：leadingGarbage == 0 且尚无 child 时也会进入此方法
+    RenderBox? child = firstChild;
     while (count > 0 && child != null) {
       final crossAxisIndex = _childCrossAxisIndex(child);
       if (crossAxisIndex != null) {
@@ -439,13 +440,22 @@ class _RenderSliverMasonryGrid({
     if (reachedEnd) {
       estimatedMaxScrollOffset = endScrollOffset;
     } else {
-      estimatedMaxScrollOffset = childManager.estimateMaxScrollOffset(
+      // childManager 按单列列表外推剩余高度；瀑布流一行约 crossAxisCount 个子项，
+      // 直接用会高估 scrollExtent，滑到底后真实高度回落就会把位置夹回去。
+      double estimated = childManager.estimateMaxScrollOffset(
         constraints,
         firstIndex: indexOf(firstChild!),
         lastIndex: indexOf(lastChild!),
         leadingScrollOffset: leadingScrollOffset,
         trailingScrollOffset: endScrollOffset,
       );
+      if (crossAxisCount > 1) {
+        final remainingExtent = estimated - endScrollOffset;
+        if (remainingExtent > 0) {
+          estimated = endScrollOffset + remainingExtent / crossAxisCount;
+        }
+      }
+      estimatedMaxScrollOffset = estimated;
       assert(estimatedMaxScrollOffset >= endScrollOffset - leadingScrollOffset);
     }
     final double paintExtent = calculatePaintOffset(constraints, from: leadingScrollOffset, to: endScrollOffset);

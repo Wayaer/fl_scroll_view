@@ -10,23 +10,23 @@ void main() {
         home: Scaffold(
           body: CustomScrollView(
             slivers: [
-              FlSliverListGrid.builder(
-                layout: const ListGridLayout.masonry(crossAxisCount: 2, mainAxisSpacing: 6, crossAxisSpacing: 6),
+              FlSliverListLayout.builder(
+                layout: const ListLayout.masonryCount(crossAxisCount: 2, mainAxisSpacing: 6, crossAxisSpacing: 6),
                 itemCount: 12,
                 itemBuilder: (_, i) => ColorEntry(i, colorAt(i), height: masonryHeight(i)),
               ),
-              FlSliverListGrid.builder(
-                layout: const ListGridLayout.quilted(crossAxisCount: 4, pattern: quiltedPattern),
+              FlSliverListLayout.builder(
+                layout: const ListLayout.quilted(crossAxisCount: 4, pattern: quiltedPattern),
                 itemCount: 8,
                 itemBuilder: (_, i) => ColorEntry(i + 20, colorAt(i + 20)),
               ),
-              FlSliverListGrid.builder(
-                layout: const ListGridLayout.staired(pattern: stairedPattern),
+              FlSliverListLayout.builder(
+                layout: const ListLayout.staired(pattern: stairedPattern),
                 itemCount: 6,
                 itemBuilder: (_, i) => ColorEntry(i + 40, colorAt(i + 40)),
               ),
-              FlSliverListGrid.builder(
-                layout: const ListGridLayout.list(),
+              FlSliverListLayout.builder(
+                layout: const ListLayout.list(),
                 itemCount: 40,
                 itemBuilder: (_, i) => ColorEntry(i + 50, colorAt(i + 50), height: 56, width: double.infinity),
               ),

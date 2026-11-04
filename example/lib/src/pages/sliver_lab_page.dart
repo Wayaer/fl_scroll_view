@@ -29,7 +29,7 @@ class _SliverLabPageState extends State<SliverLabPage> {
     final String pinnedLine = _showPinnedBox
         ? 'FlSliverPinnedToBoxAdapter(child: PinnedBar()),'
         : '// FlSliverPinnedToBoxAdapter 已关闭';
-    return 'FlRefreshScrollView(\n'
+    return 'FlRefreshableScrollView(\n'
         '  controller: controller,\n'
         '  slivers: [\n'
         '    FlSliverPersistentHeader(\n'
@@ -40,8 +40,8 @@ class _SliverLabPageState extends State<SliverLabPage> {
         '      child: HeaderContent(),\n'
         '    ),\n'
         '    $pinnedLine\n'
-        '    FlSliverListGrid.builder(\n'
-        '      layout: const ListGridLayout.list(),\n'
+        '    FlSliverListLayout.builder(\n'
+        '      layout: const ListLayout.list(),\n'
         '      itemCount: 60,\n'
         '      itemBuilder: (_, i) => Tile(i),\n'
         '    ),\n'
@@ -212,7 +212,7 @@ class _SliverLabPageState extends State<SliverLabPage> {
       body: Column(
         children: [
           Expanded(
-            child: FlRefreshScrollView(
+            child: FlRefreshableScrollView(
               controller: _controller,
               reverse: _reverse,
               padding: const EdgeInsets.all(10),
@@ -256,9 +256,9 @@ class _SliverLabPageState extends State<SliverLabPage> {
                     if (_showSecondHeader) 'floating header ×2',
                   ],
                 ),
-                SectionTitle('FlSliverListGrid.list', subtitle: '下方列表用于观察头部折叠与固定效果'),
-                FlSliverListGrid.builder(
-                  layout: const ListGridLayout.list(),
+                SectionTitle('FlSliverListLayout.list', subtitle: '下方列表用于观察头部折叠与固定效果'),
+                FlSliverListLayout.builder(
+                  layout: const ListLayout.list(),
                   itemCount: 60,
                   itemBuilder: (_, int index) => Padding(
                     padding: const EdgeInsets.only(bottom: 8),
